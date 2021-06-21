@@ -1,0 +1,32 @@
+CFLAGS= -g3 -c -Wall
+CC= gcc
+SRC = src
+LIB = lib
+OBJ = obj
+BIN = bin
+OBJECTS=$(OBJ)/utils.o 
+HEADER= $(SRC)/utils.h
+
+do : app
+
+$(OBJ)/utils.o: $(SRC)/utils.c
+	$(CC) $(CFLAGS) $(SRC)/utils.c  -o $(OBJ)/utils.o
+
+$(OBJ)/test.o: $(SRC)/test.c
+	$(CC) $(CFLAGS) $(SRC)/test.c -o $(OBJ)/test.o
+
+app: test
+
+test: ${OBJECTS} $(OBJ)/test.o
+	$(CC) -o $(BIN)/test.exe ${OBJECTS} $(OBJ)/test.o
+
+clean: 
+	rm -rf $(OBJ)/*.o
+	rm -rf $(BIN)/*.exe
+
+empty: 
+	del /F /Q $(OBJ)\*
+	del /F /Q $(BIN)\*.exe
+
+run-test: test
+	./$(BIN)/test.exe
