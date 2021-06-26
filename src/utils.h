@@ -1,6 +1,9 @@
 #ifndef DEF_UTILS
 #define DEF_UTILS
 
+// Constants
+#define PLOT_SYMBOL '*';
+
 typedef struct Coordinates Coordinates;
 struct Coordinates
 {
@@ -11,7 +14,7 @@ struct Coordinates
 typedef struct Image Image;
 struct Image
 {
-    int length;
+    int height;
     int width;
     int spatial_resolution;
     int tonal_resolution; // number of shades of gray
