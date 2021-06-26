@@ -4,18 +4,22 @@ SRC = src
 LIB = lib
 OBJ = obj
 BIN = bin
-OBJECTS=$(OBJ)/utils.o 
+OBJECTS=$(OBJ)/utils.o
 HEADER= $(SRC)/utils.h
 
-do : app
+all : app run-app
 
 $(OBJ)/utils.o: $(SRC)/utils.c
 	$(CC) $(CFLAGS) $(SRC)/utils.c  -o $(OBJ)/utils.o
 
+$(OBJ)/app.o: $(SRC)/app.c
+	$(CC) $(CFLAGS) $(SRC)/app.c  -o $(OBJ)/app.o
+
 $(OBJ)/test.o: $(SRC)/test.c
 	$(CC) $(CFLAGS) $(SRC)/test.c -o $(OBJ)/test.o
 
-app: test
+app: ${OBJECTS} $(OBJ)/app.o
+	$(CC) -o $(BIN)/app.exe ${OBJECTS} $(OBJ)/app.o
 
 test: ${OBJECTS} $(OBJ)/test.o
 	$(CC) -o $(BIN)/test.exe ${OBJECTS} $(OBJ)/test.o
@@ -30,3 +34,6 @@ empty:
 
 run-test: test
 	./$(BIN)/test.exe
+
+run-app: app
+	./$(BIN)/app.exe
