@@ -16,8 +16,8 @@ struct Image
 {
     int height;
     int width;
-    int spatial_resolution;
-    int tonal_resolution; // number of shades of gray
+    int spatial_resolution; // height * width
+    int tonal_resolution;   // number of shades of gray
     int **image;
 };
 
@@ -26,12 +26,19 @@ struct SpectralImage
 {
 };
 
+typedef struct CoordinatesList CoordinatesList;
+struct CoordinatesList
+{
+    Coordinates *coordinates;
+    int length;
+};
+
 typedef struct Hist Hist;
 struct Hist
 {
-    float *hist;                    // array i -> H(i)
-    Coordinates **coordinates_hist; // array i -> array Coordinates that have color i
-    Image *image;                   // reference to corresponding image image
+    float *hist;                       // array i -> H(i)
+    CoordinatesList *hist_coordinates; // array i -> array Coordinates that have color i
+    Image *image;                      // reference to corresponding image image
 };
 
 typedef struct FilterMatrix FilterMatrix;
@@ -53,17 +60,43 @@ struct SpectralFilter
 {
 };
 
+/**
+* parse ASCII PGM (P2) image given at specified path
+* @param path image path
+* @return Image*
+*/
 Image *parse_image(const char *path);
 
-/*
-* print part of image from point to { point.x + radius, point.y + radius }
-*/
-void print_image(Image *image, Coordinates *point, int radius);
+void save(Image *img, char *path);
 
+/**
+* print part of image from point to { point.x + radius, point.y + radius }
+* @param image 
+* @param start_point where to start printing 
+* @param radius size to print from start point 
+* @return void
+*/
+void print_image(Image *image, Coordinates *start_point, int radius);
+
+/**
+* Calculate luminosuity
+* @param image 
+* @return float 
+*/
 float luminousity(Image *image);
 
+/**
+* Calculate contrast
+* @param image 
+* @return float 
+*/
 float contrast(Image *image);
 
+/**
+* Build histogram of
+* @param image 
+* @return Hist 
+*/
 Hist *make_hist(Image *image);
 
 void plot_hist(Hist *hist);
@@ -106,5 +139,11 @@ Image *image_or(Image *image1, Image *image2);
 Image *image_not(Image *image);
 
 Image *interpolate(Image *image, float factor);
+
+// helpers
+
+int **allocate_dynamic_matrix(int row, int col);
+
+void deallocate_dynamic_matrix(int **matrix, int row);
 
 #endif
