@@ -222,3 +222,71 @@ Image *image_add(Image *image1, Image *image2)
 
     return image;
 }
+
+Image *image_sub(Image *image1, Image *image2)
+{
+    // image1 - image2
+    Image *image = malloc(sizeof(Image));
+    int pixMax=0, acpix;
+    if (image1->width != image2->width || image1->height != image2->height) {
+        printf("ERROR(1): image1 and image2 should have the same dimension\n");
+        exit(1);
+    }
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+
+        }
+    }
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+
+        }
+    }
+    image->tonal_resolution = pixMax;
+
+    return image;
+}
+
+Image *image_mul(Image *image1, int ratio)
+{
+    // image1 * ratio
+    Image *image = malloc(sizeof(Image));
+    int pixMax=0, acpix;
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+
+        }
+    }
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            acpix = MIN((image1->image[row][col] * ratio), 255);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+
+        }
+    }
+    image->tonal_resolution = pixMax;
+
+    return image;
+}

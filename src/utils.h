@@ -65,47 +65,49 @@ struct SpectralFilter
 * @param path image path
 * @return Image*
 */
-Image *parse_image(const char *path);
+Image *parse_image(const char *path); // ok
 
-void save(Image *img, char *path);
+void save(Image *img, char *path); // ok
 
 /**
 * print part of image from point to { point.x + radius, point.y + radius }
-* @param image 
-* @param start_point where to start printing 
-* @param radius size to print from start point 
+* @param image
+* @param start_point where to start printing
+* @param radius size to print from start point
 * @return void
 */
-void print_image(Image *image, Coordinates *start_point, int radius);
+void print_image(Image *image, Coordinates *start_point, int radius); // ok
 
 /**
 * Calculate luminosuity
-* @param image 
-* @return float 
+* @param image
+* @return float
 */
-float luminousity(Image *image);
+float luminousity(Image *image); // ok
 
 /**
 * Calculate contrast
-* @param image 
-* @return float 
+* @param image
+* @return float
 */
-float contrast(Image *image);
+float contrast(Image *image); // ok
 
 /**
 * Build histogram of
-* @param image 
-* @return Hist 
+* @param image
+* @return Hist
 */
 Hist *make_hist(Image *image);
 
 void plot_hist(Hist *hist);
 
-Hist *enhance_by_repartition(Hist *hist);
+Image *enhance_by_linear_trans(image *Image); // en cour
 
-Hist *enhance_by_partioned_repartition(Hist *hist);
+Image *enhance_by_linear_trans_sat(Hist *hist); // à revoir
 
-Hist *enhance_by_histogram_equalization(Hist *hist);
+Image *enhance_by_linear_trans_frag(Hist *hist);  // à revoir
+
+Hist *enhance_by_histogram_equalization(Hist *hist); // en cour
 
 /**
 * Applies filter to image
@@ -124,21 +126,19 @@ Image *FFT_inverse(SpectralImage *image);
 
 //for ad hoc operations
 
-Image *image_mul(Image *image1, Image *image2);
+Image *image_mul(Image *image1, int ratio); // ok
 
-Image *image_div(Image *image1, Image *image2);
+// Image *image_div(Image *image1, Image *image2);
 
-Image *image_sub(Image *image1, Image *image2);
+Image *image_sub(Image *image1, Image *image2); // ok
 
-Image *image_add(Image *image1, Image *image2);
-
-Image *image_and(Image *image1, Image *image2);
+Image *image_add(Image *image1, Image *image2); // ok
 
 Image *image_or(Image *image1, Image *image2);
 
 Image *image_not(Image *image);
 
-Image *interpolate(Image *image, float factor);
+Image *interpolate(Image *image, float factor); // à revoir
 
 // helpers
 

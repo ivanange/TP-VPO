@@ -10,7 +10,9 @@ int main()
 
     Image *image1 = parse_image("./data/image.pgm");
     Image *image2 = parse_image("./data/image.pgm");
-    Image *image = image_add(image1, image2);
+    // Image *image = image_add(image1, image2);
+    // Image *image = image_sub(image1, image2);
+    Image *image = image_mul(image1, 3);
     Coordinates coords = {0, 0};
     print_image(image, &coords, 6);
     save(image, "./data/image2.pgm");
