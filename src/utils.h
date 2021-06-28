@@ -152,12 +152,8 @@ int **allocate_dynamic_matrix(int row, int col);
 
 void deallocate_dynamic_matrix(int **matrix, int row);
 
-<<<<<<< HEAD
-#endif
-=======
 char **allocate_dynamic_char_matrix(int row, int col);
 
 void deallocate_dynamic_char_matrix(char **matrix, int row);
 
 #endif
->>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
