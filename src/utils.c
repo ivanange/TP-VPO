@@ -45,6 +45,8 @@ Image *parse_image(const char *path)
     fscanf(file, "%d", &(image->width));
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
+    image->tonal_resolution = image->tonal_resolution + 1;
+    image->spatial_resolution = image->height * image->width;
 
     printf("\n width  = %d", image->width);
     printf("\n height = %d", image->height);
@@ -66,7 +68,7 @@ Image *parse_image(const char *path)
     }
 
     fclose(file);
-    printf("\nDone reading file.\n");
+    printf("\nDone reading file.\n\n");
 
     return image;
 }
@@ -95,16 +97,19 @@ void save(Image *img, char *path)
     fclose(file);
 }
 
-void print_image(Image *image, Coordinates *start_point, int radius)
+void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y)
 {
-    for (int i = start_point->x; i <= start_point->x + radius; i++)
+    printf("printing from { x: %d, y: %d } to { x: %d, y: %d } \n\n", start_point->x, start_point->y, start_point->x + radius_x, start_point->y + radius_y);
+
+    for (int i = start_point->x; i <= start_point->x + radius_x; i++)
     {
-        for (int j = start_point->y; j <= start_point->y + radius; j++)
+        for (int j = start_point->y; j <= start_point->y + radius_y; j++)
         {
             printf(" %d ", image->image[i][j]);
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 float luminousity(Image *image)
@@ -138,15 +143,111 @@ float contrast(Image *image)
     return pow(sum / image->spatial_resolution, 0.5);
 }
 
-// Hist *make_hist(Image *image)
-// {
-//     Hist *histogram = malloc(sizeof(Hist));
-//     histogram->image = image;
+Hist *make_hist(Image *image, int normalize)
+{
+    int shade;
+    Hist *histogram = malloc(sizeof(Hist));
+    histogram->image = image;
 
-//     histogram->hist = calloc(image->tonal_resolution, sizeof(float));
-//     histogram->hist = (float[]){0};
-//     histogram->hist_coordinates = calloc(image->tonal_resolution, sizeof(CoordinatesList));
-// }
+    histogram->hist = calloc(image->tonal_resolution, sizeof(float));
+
+    // set all shades to 0
+    for (int i = 0; i < image->tonal_resolution; i++)
+    {
+        histogram->hist[i] = 0;
+    }
+
+    histogram->hist_coordinates = calloc(image->tonal_resolution, sizeof(CoordinatesList));
+
+    for (int i = 0; i < image->height; i++)
+    {
+        for (int j = 0; j < image->width; j++)
+        {
+            shade = image->image[i][j];
+            histogram->hist[shade] = histogram->hist[shade] + 1;
+
+            Coordinates *coords = malloc(sizeof(Coordinates));
+            coords->x = i;
+            coords->y = j;
+
+            if (histogram->hist_coordinates[shade].coordinates == NULL)
+            {
+                // allocate memory for array
+                histogram->hist_coordinates[shade].coordinates = coords;
+                histogram->hist_coordinates[shade].length = 1;
+            }
+            else
+            {
+                // reallocate memory to append to array
+                Coordinates *new = realloc(histogram->hist_coordinates[shade].coordinates, (histogram->hist_coordinates[shade].length + 1) * sizeof(Coordinates));
+
+                if (new == NULL)
+                {
+                    /* something went wrong getting more memory, abort */
+                    perror("Couldn't get memrory, aborting and exitting");
+                    exit(EXIT_FAILURE);
+                }
+                else
+                {
+                    // got more memory, append to array
+                    histogram->hist_coordinates[shade].coordinates = new;
+                    histogram->hist_coordinates[shade].coordinates[histogram->hist_coordinates[shade].length] = *coords;
+                    histogram->hist_coordinates[shade].length = histogram->hist_coordinates[shade].length + 1;
+                }
+            }
+        }
+    }
+
+    if (normalize == 1)
+    {
+        for (int i = 0; i < image->tonal_resolution; i++)
+        {
+            histogram->hist[i] = histogram->hist[i] / image->spatial_resolution;
+        }
+
+        histogram->normalized = 1;
+    }
+
+    return histogram;
+}
+
+void print_hist(Hist *hist)
+{
+    // print hist
+    for (int i = 0; i < hist->image->tonal_resolution; i++)
+    {
+        // printf("%.3d | %f", i, print_hist[i]);
+        printf("%3d | %f \n", i, hist->hist[i]);
+    }
+    printf("\n");
+}
+
+void plot_hist(Hist *hist)
+{
+    float *print_hist = calloc(hist->image->tonal_resolution, sizeof(float));
+
+    /* normalize if not normalized and scale */
+    for (int i = 0; i < hist->image->tonal_resolution; i++)
+    {
+        print_hist[i] = floor((hist->normalized == 1 ? hist->hist[i] : hist->hist[i] / hist->image->spatial_resolution) * PLOT_SCALE);
+    }
+
+    // print hist
+    printf("\nHistogram (scaled to %d to fit screen) \n", PLOT_SCALE);
+    for (int i = 0; i < hist->image->tonal_resolution; i++)
+    {
+        // printf("%.3d | %f", i, print_hist[i]);
+        printf("%3d |", i);
+
+        for (int j = 0; j < print_hist[i]; j++)
+        {
+            printf("%c", PLOT_SYMBOL);
+        }
+
+        printf("\n");
+    }
+    printf("\n");
+}
 
 int **allocate_dynamic_matrix(int row, int col)
 {
@@ -174,6 +275,42 @@ int **allocate_dynamic_matrix(int row, int col)
 }
 
 void deallocate_dynamic_matrix(int **matrix, int row)
+{
+    int i;
+
+    for (i = 0; i < row; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+char **allocate_dynamic_char_matrix(int row, int col)
+{
+    char **ret_val;
+    int i;
+
+    ret_val = (char **)malloc(sizeof(char *) * row);
+    if (ret_val == NULL)
+    {
+        perror("memory allocation failure");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < row; ++i)
+    {
+        ret_val[i] = (char *)malloc(sizeof(char) * col);
+        if (ret_val[i] == NULL)
+        {
+            perror("memory allocation failure");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return ret_val;
+}
+
+void deallocate_dynamic_char_matrix(char **matrix, int row)
 {
     int i;
 
