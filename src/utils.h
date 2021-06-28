@@ -78,11 +78,9 @@ void save(Image *img, char *path); // ok
 * @param radius size to print from start point
 * @return void
 */
-<<<<<<< HEAD
-void print_image(Image *image, Coordinates *start_point, int radius); // ok
-=======
+
 void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y);
->>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
+// >>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
 
 /**
 * Calculate luminosuity

@@ -48,9 +48,9 @@ Image *parse_image(const char *path)
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
 
-    printf("\n width  = %d", image->width);
-    printf("\n height = %d", image->height);
-    printf("\n shades = %d", image->tonal_resolution);
+    printf("\n width: %d", image->width);
+    printf("\n height: %d", image->height);
+    printf("\n shades: %d", image->tonal_resolution);
     printf("\n");
 
     image->image = allocate_dynamic_matrix(image->height, image->width);
@@ -141,14 +141,117 @@ float contrast(Image *image)
     return pow(sum / image->spatial_resolution, 0.5);
 }
 
+<<<<<<< HEAD
 // Hist *make_hist(Image *image)
 // {
 //     Hist *histogram = malloc(sizeof(Hist));
 //     histogram->image = image;
+=======
+Hist *make_hist(Image *image, int normalize)
+{
+    int shade;
+    Hist *histogram = malloc(sizeof(Hist));
+    histogram->image = image;
+
+    histogram->hist = calloc(image->tonal_resolution, sizeof(float));
+
+    // set all shades to 0
+    for (int i = 0; i < image->tonal_resolution; i++)
+    {
+        histogram->hist[i] = 0;
+    }
+
+    histogram->hist_coordinates = calloc(image->tonal_resolution, sizeof(CoordinatesList));
+
+    for (int i = 0; i < image->height; i++)
+    {
+        for (int j = 0; j < image->width; j++)
+        {
+            shade = image->image[i][j];
+            histogram->hist[shade] = histogram->hist[shade] + 1;
+
+            Coordinates *coords = malloc(sizeof(Coordinates));
+            coords->x = i;
+            coords->y = j;
+
+            if (histogram->hist_coordinates[shade].coordinates == NULL)
+            {
+                // allocate memory for array
+                histogram->hist_coordinates[shade].coordinates = coords;
+                histogram->hist_coordinates[shade].length = 1;
+            }
+            else
+            {
+                // reallocate memory to append to array
+                Coordinates *new = realloc(histogram->hist_coordinates[shade].coordinates, (histogram->hist_coordinates[shade].length + 1) * sizeof(Coordinates));
+
+                if (new == NULL)
+                {
+                    /* something went wrong getting more memory, abort */
+                    perror("Couldn't get memrory, aborting and exitting");
+                    exit(EXIT_FAILURE);
+                }
+                else
+                {
+                    // got more memory, append to array
+                    histogram->hist_coordinates[shade].coordinates = new;
+                    histogram->hist_coordinates[shade].coordinates[histogram->hist_coordinates[shade].length] = *coords;
+                    histogram->hist_coordinates[shade].length = histogram->hist_coordinates[shade].length + 1;
+                }
+            }
+        }
+    }
+
+    if (normalize == 1)
+    {
+        for (int i = 0; i < image->tonal_resolution; i++)
+        {
+            histogram->hist[i] = histogram->hist[i] / image->spatial_resolution;
+        }
+
+        histogram->normalized = 1;
+    }
+
+    return histogram;
+}
+
+void print_hist(Hist *hist)
+{
+    // print hist
+    for (int i = 0; i < hist->image->tonal_resolution; i++)
+    {
+        // printf("%.3d | %f", i, print_hist[i]);
+        printf("%3d | %f \n", i, hist->hist[i]);
+    }
+    printf("\n");
+}
+
+void plot_hist(Hist *hist)
+{
+    float *print_hist = calloc(hist->image->tonal_resolution, sizeof(float));
+
+    /* normalize if not normalized and scale */
+    for (int i = 0; i < hist->image->tonal_resolution; i++)
+    {
+        print_hist[i] = floor((hist->normalized == 1 ? hist->hist[i] : hist->hist[i] / hist->image->spatial_resolution) * PLOT_SCALE);
+    }
+
+    // print hist
+    printf("\nHistogram (scaled to %d to fit screen, may not be accurate enough) \n", PLOT_SCALE);
+    for (int i = 0; i < hist->image->tonal_resolution; i++)
+    {
+        // printf("%.3d | %f", i, print_hist[i]);
+        printf("%3d |", i);
+>>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
 
 //     histogram->hist = calloc(image->tonal_resolution, sizeof(float));
 //     histogram->hist = (float[]){0};
 //     histogram->hist_coordinates = calloc(image->tonal_resolution, sizeof(CoordinatesList));
+// }
+
+// Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
+// {
+
 // }
 
 int **allocate_dynamic_matrix(int row, int col)
@@ -232,6 +335,7 @@ Image *image_sub(Image *image1, Image *image2)
         printf("ERROR(1): image1 and image2 should have the same dimension\n");
         exit(1);
     }
+<<<<<<< HEAD
     image->width = image1->width;
     image->height = image1->height;
     image->spatial_resolution = image1->spatial_resolution;
@@ -242,11 +346,35 @@ Image *image_sub(Image *image1, Image *image2)
         {
             image->image[row][col] = 0;
 
+=======
+    free(matrix);
+}
+
+Image *image_add(Image *image1, Image *image2)
+{
+    Image *image = malloc(sizeof(Image));
+    int pixMax = 0, acpix;
+    if (image1->width != image2->width || image1->height != image2->height)
+    {
+        printf("ERROR(1): image1 and image2 should have the same dimension\n");
+        exit(1);
+    }
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+>>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
         }
     }
     for (int row = 0; row < image->height; row++)
     {
         for (int col = 0; col < image->width; col++)
+<<<<<<< HEAD
         {
             acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
             image->image[row][col] = acpix;
@@ -285,6 +413,13 @@ Image *image_mul(Image *image1, int ratio)
             pixMax = MAX(acpix, pixMax);
 
         }
+=======
+        {
+            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+        }
+>>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
     }
     image->tonal_resolution = pixMax;
 
