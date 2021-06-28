@@ -83,8 +83,7 @@ void save(Image *img, char *path); // ok
 * @return void
 */
 
-void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y);
-// >>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
+void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y); //ok
 
 /**
 * Calculate luminosuity
@@ -111,11 +110,11 @@ void print_hist(Hist *hist);
 
 void plot_hist(Hist *hist);
 
-Image *enhance_by_linear_trans(image *Image); // en cour
+Image *enhance_by_linear_trans(Hist *hist); // en cour
 
 Image *enhance_by_linear_trans_sat(Hist *hist); // à revoir
 
-Image *enhance_by_linear_trans_frag(Hist *hist);  // à revoir
+Image *enhance_by_linear_trans_frag(Hist *hist); // à revoir
 
 Hist *enhance_by_histogram_equalization(Hist *hist); // en cour
 
@@ -156,12 +155,8 @@ int **allocate_dynamic_matrix(int row, int col);
 
 void deallocate_dynamic_matrix(int **matrix, int row);
 
-<<<<<<< HEAD
-#endif
-=======
 char **allocate_dynamic_char_matrix(int row, int col);
 
 void deallocate_dynamic_char_matrix(char **matrix, int row);
 
 #endif
->>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1

@@ -141,12 +141,6 @@ float contrast(Image *image)
     return pow(sum / image->spatial_resolution, 0.5);
 }
 
-<<<<<<< HEAD
-// Hist *make_hist(Image *image)
-// {
-//     Hist *histogram = malloc(sizeof(Hist));
-//     histogram->image = image;
-=======
 Hist *make_hist(Image *image, int normalize)
 {
     int shade;
@@ -242,16 +236,20 @@ void plot_hist(Hist *hist)
     {
         // printf("%.3d | %f", i, print_hist[i]);
         printf("%3d |", i);
->>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
 
-//     histogram->hist = calloc(image->tonal_resolution, sizeof(float));
-//     histogram->hist = (float[]){0};
-//     histogram->hist_coordinates = calloc(image->tonal_resolution, sizeof(CoordinatesList));
-// }
+        for (int j = 0; j < print_hist[i]; j++)
+        {
+            printf("%c", PLOT_SYMBOL);
+        }
+
+        printf("\n");
+    }
+    printf("\n");
+}
 
 Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
 {
-    int, i, j, k;
+    int i, j, k;
     Image *new = malloc(sizeof(Image));
     (*new) = (*image);
     new->image = allocate_dynamic_matrix(new->height, new->width);
@@ -312,66 +310,6 @@ void deallocate_dynamic_matrix(int **matrix, int row)
     free(matrix);
 }
 
-
-Image *image_add(Image *image1, Image *image2)
-{
-    Image *image = malloc(sizeof(Image));
-    int pixMax=0, acpix;
-    if (image1->width != image2->width || image1->height != image2->height) {
-        printf("ERROR(1): image1 and image2 should have the same dimension\n");
-        exit(1);
-    }
-    image->width = image1->width;
-    image->height = image1->height;
-    image->spatial_resolution = image1->spatial_resolution;
-    image->image = allocate_dynamic_matrix(image->height, image->width);
-    for (int row = 0; row < image->height; row++)
-    {
-        for (int col = 0; col < image->width; col++)
-        {
-            image->image[row][col] = 0;
-
-        }
-    }
-    for (int row = 0; row < image->height; row++)
-    {
-        for (int col = 0; col < image->width; col++)
-        {
-            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
-            image->image[row][col] = acpix;
-            pixMax = MAX(acpix, pixMax);
-
-        }
-    }
-    image->tonal_resolution = pixMax;
-
-    return image;
-}
-
-Image *image_sub(Image *image1, Image *image2)
-{
-    // image1 - image2
-    Image *image = malloc(sizeof(Image));
-    int pixMax=0, acpix;
-    if (image1->width != image2->width || image1->height != image2->height) {
-        printf("ERROR(1): image1 and image2 should have the same dimension\n");
-        exit(1);
-    }
-<<<<<<< HEAD
-    image->width = image1->width;
-    image->height = image1->height;
-    image->spatial_resolution = image1->spatial_resolution;
-    image->image = allocate_dynamic_matrix(image->height, image->width);
-    for (int row = 0; row < image->height; row++)
-    {
-        for (int col = 0; col < image->width; col++)
-        {
-            image->image[row][col] = 0;
-
-=======
-    free(matrix);
-}
-
 Image *image_add(Image *image1, Image *image2)
 {
     Image *image = malloc(sizeof(Image));
@@ -390,18 +328,15 @@ Image *image_add(Image *image1, Image *image2)
         for (int col = 0; col < image->width; col++)
         {
             image->image[row][col] = 0;
->>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
         }
     }
     for (int row = 0; row < image->height; row++)
     {
         for (int col = 0; col < image->width; col++)
-<<<<<<< HEAD
         {
-            acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
+            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
             image->image[row][col] = acpix;
             pixMax = MAX(acpix, pixMax);
-
         }
     }
     image->tonal_resolution = pixMax;
@@ -409,11 +344,17 @@ Image *image_add(Image *image1, Image *image2)
     return image;
 }
 
-Image *image_mul(Image *image1, int ratio)
+Image *image_sub(Image *image1, Image *image2)
 {
-    // image1 * ratio
+    // image1 - image2
     Image *image = malloc(sizeof(Image));
-    int pixMax=0, acpix;
+    int pixMax = 0, acpix;
+    if (image1->width != image2->width || image1->height != image2->height)
+    {
+        printf("ERROR(1): image1 and image2 should have the same dimension\n");
+        exit(1);
+    }
+
     image->width = image1->width;
     image->height = image1->height;
     image->spatial_resolution = image1->spatial_resolution;
@@ -423,9 +364,42 @@ Image *image_mul(Image *image1, int ratio)
         for (int col = 0; col < image->width; col++)
         {
             image->image[row][col] = 0;
-
         }
     }
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+        }
+    }
+
+    image->tonal_resolution = pixMax;
+
+    return image;
+}
+
+Image *image_mul(Image *image1, int ratio)
+{
+    // image1 * ratio
+    Image *image = malloc(sizeof(Image));
+    int pixMax = 0, acpix;
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+        }
+    }
+
     for (int row = 0; row < image->height; row++)
     {
         for (int col = 0; col < image->width; col++)
@@ -433,15 +407,7 @@ Image *image_mul(Image *image1, int ratio)
             acpix = MIN((image1->image[row][col] * ratio), 255);
             image->image[row][col] = acpix;
             pixMax = MAX(acpix, pixMax);
-
         }
-=======
-        {
-            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
-            image->image[row][col] = acpix;
-            pixMax = MAX(acpix, pixMax);
-        }
->>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
     }
     image->tonal_resolution = pixMax;
 
