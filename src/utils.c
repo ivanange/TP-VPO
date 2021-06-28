@@ -252,9 +252,10 @@ void plot_hist(Hist *hist)
     printf("\n");
 }
 
-Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
-{
-}
+// Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
+// {
+
+// }
 
 int **allocate_dynamic_matrix(int row, int col)
 {
@@ -326,37 +327,38 @@ void deallocate_dynamic_char_matrix(char **matrix, int row)
         free(matrix[i]);
     }
     free(matrix);
+}
 
-    Image *image_add(Image * image1, Image * image2)
+Image *image_add(Image *image1, Image *image2)
+{
+    Image *image = malloc(sizeof(Image));
+    int pixMax = 0, acpix;
+    if (image1->width != image2->width || image1->height != image2->height)
     {
-        Image *image = malloc(sizeof(Image));
-        int pixMax = 0, acpix;
-        if (image1->width != image2->width || image1->height != image2->height)
-        {
-            printf("ERROR(1): image1 and image2 should have the same dimension\n");
-            exit(1);
-        }
-        image->width = image1->width;
-        image->height = image1->height;
-        image->spatial_resolution = image1->spatial_resolution;
-        image->image = allocate_dynamic_matrix(image->height, image->width);
-        for (int row = 0; row < image->height; row++)
-        {
-            for (int col = 0; col < image->width; col++)
-            {
-                image->image[row][col] = 0;
-            }
-        }
-        for (int row = 0; row < image->height; row++)
-        {
-            for (int col = 0; col < image->width; col++)
-            {
-                acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
-                image->image[row][col] = acpix;
-                pixMax = MAX(acpix, pixMax);
-            }
-        }
-        image->tonal_resolution = pixMax;
-
-        return image;
+        printf("ERROR(1): image1 and image2 should have the same dimension\n");
+        exit(1);
     }
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+        }
+    }
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+        }
+    }
+    image->tonal_resolution = pixMax;
+
+    return image;
+}
