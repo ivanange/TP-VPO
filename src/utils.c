@@ -47,6 +47,8 @@ Image *parse_image(const char *path)
     fscanf(file, "%d", &(image->width));
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
+    image->tonal_resolution = image->tonal_resolution + 1;
+    image->spatial_resolution = image->height * image->width;
 
     printf("\n width: %d", image->width);
     printf("\n height: %d", image->height);
@@ -68,7 +70,7 @@ Image *parse_image(const char *path)
     }
 
     fclose(file);
-    printf("\nDone reading file.\n");
+    printf("\nDone reading file.\n\n");
 
     return image;
 }
@@ -106,7 +108,7 @@ void print_image(Image *image, Coordinates *start_point, int radius_x, int radiu
     {
         for (int j = start_point->y; j <= start_point->y + radius_y; j++)
         {
-            printf(" %d ", image->image[i][j]);
+            printf(" %3d ", image->image[i][j]);
         }
         printf("\n");
     }
@@ -252,7 +254,7 @@ void plot_hist(Hist *hist)
 
 // Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
 // {
-//     int i, j, k;
+//     int, i, j, k;
 //     Image *new = malloc(sizeof(Image));
 //     (*new) = (*image);
 //     new->image = allocate_dynamic_matrix(new->height, new->width);
@@ -303,6 +305,42 @@ int **allocate_dynamic_matrix(int row, int col)
 }
 
 void deallocate_dynamic_matrix(int **matrix, int row)
+{
+    int i;
+
+    for (i = 0; i < row; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+char **allocate_dynamic_char_matrix(int row, int col)
+{
+    char **ret_val;
+    int i;
+
+    ret_val = (char **)malloc(sizeof(char *) * row);
+    if (ret_val == NULL)
+    {
+        perror("memory allocation failure");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < row; ++i)
+    {
+        ret_val[i] = (char *)malloc(sizeof(char) * col);
+        if (ret_val[i] == NULL)
+        {
+            perror("memory allocation failure");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return ret_val;
+}
+
+void deallocate_dynamic_char_matrix(char **matrix, int row)
 {
     int i;
 
