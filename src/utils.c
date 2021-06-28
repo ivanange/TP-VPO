@@ -50,9 +50,9 @@ Image *parse_image(const char *path)
     image->tonal_resolution = image->tonal_resolution + 1;
     image->spatial_resolution = image->height * image->width;
 
-    printf("\n width  = %d", image->width);
-    printf("\n height = %d", image->height);
-    printf("\n shades = %d", image->tonal_resolution);
+    printf("\n width: %d", image->width);
+    printf("\n height: %d", image->height);
+    printf("\n shades: %d", image->tonal_resolution);
     printf("\n");
 
     image->image = allocate_dynamic_matrix(image->height, image->width);
@@ -236,7 +236,7 @@ void plot_hist(Hist *hist)
     }
 
     // print hist
-    printf("\nHistogram (scaled to %d to fit screen) \n", PLOT_SCALE);
+    printf("\nHistogram (scaled to %d to fit screen, may not be accurate enough) \n", PLOT_SCALE);
     for (int i = 0; i < hist->image->tonal_resolution; i++)
     {
         // printf("%.3d | %f", i, print_hist[i]);
@@ -250,6 +250,10 @@ void plot_hist(Hist *hist)
         printf("\n");
     }
     printf("\n");
+}
+
+Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
+{
 }
 
 int **allocate_dynamic_matrix(int row, int col)
