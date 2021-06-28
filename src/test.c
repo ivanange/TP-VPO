@@ -9,9 +9,18 @@ int main()
 
     Image *image1 = parse_image("./data/image.pgm");
     Image *image2 = parse_image("./data/image.pgm");
+<<<<<<< HEAD
+<<<<<<< HEAD
+    // Image *image = image_add(image1, image2);
+    // Image *image = image_sub(image1, image2);
+    Image *image = image_mul(image1, 3);
+=======
+=======
+>>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
     Image *apollo = parse_image("./data/apollonian_gasket.ascii.pgm");
     Image *feep = parse_image("./data/feep.ascii.pgm");
     Image *image = image_add(image1, image2);
+>>>>>>> a51b7d06aa80404ace1d6355905aa0c3cd0bfb5e
     Coordinates coords = {0, 0};
     print_image(image, &coords, 6, 6);
     save(image, "./data/image2.pgm");
