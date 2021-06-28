@@ -2,7 +2,8 @@
 #define DEF_UTILS
 
 // Constants
-#define PLOT_SYMBOL '*';
+#define PLOT_SYMBOL (char)254u
+#define PLOT_SCALE 150
 
 typedef struct Coordinates Coordinates;
 struct Coordinates
@@ -38,7 +39,8 @@ struct Hist
 {
     float *hist;                       // array i -> H(i)
     CoordinatesList *hist_coordinates; // array i -> array Coordinates that have color i
-    Image *image;                      // reference to corresponding image image
+    Image *image;
+    int normalized; // reference to corresponding image image
 };
 
 typedef struct FilterMatrix FilterMatrix;
@@ -76,7 +78,11 @@ void save(Image *img, char *path); // ok
 * @param radius size to print from start point
 * @return void
 */
+<<<<<<< HEAD
 void print_image(Image *image, Coordinates *start_point, int radius); // ok
+=======
+void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y);
+>>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
 
 /**
 * Calculate luminosuity
@@ -97,7 +103,9 @@ float contrast(Image *image); // ok
 * @param image
 * @return Hist
 */
-Hist *make_hist(Image *image);
+Hist *make_hist(Image *image, int normalize);
+
+void print_hist(Hist *hist);
 
 void plot_hist(Hist *hist);
 
@@ -146,4 +154,12 @@ int **allocate_dynamic_matrix(int row, int col);
 
 void deallocate_dynamic_matrix(int **matrix, int row);
 
+<<<<<<< HEAD
 #endif
+=======
+char **allocate_dynamic_char_matrix(int row, int col);
+
+void deallocate_dynamic_char_matrix(char **matrix, int row);
+
+#endif
+>>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
