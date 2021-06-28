@@ -29,7 +29,7 @@ clean:
 	rm -rf $(BIN)/*.exe
 
 empty: 
-	del /F /Q $(OBJ)\*
+	del /F /Q $(OBJ)\*.o
 	del /F /Q $(BIN)\*.exe
 
 run-test: test

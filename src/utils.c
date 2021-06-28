@@ -98,16 +98,19 @@ void save(Image *img, char *path)
     printf("Save image done \n");
 }
 
-void print_image(Image *image, Coordinates *start_point, int radius)
+void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y)
 {
-    for (int i = start_point->x; i <= start_point->x + radius; i++)
+    printf("printing from { x: %d, y: %d } to { x: %d, y: %d } \n\n", start_point->x, start_point->y, start_point->x + radius_x, start_point->y + radius_y);
+
+    for (int i = start_point->x; i <= start_point->x + radius_x; i++)
     {
-        for (int j = start_point->y; j <= start_point->y + radius; j++)
+        for (int j = start_point->y; j <= start_point->y + radius_y; j++)
         {
             printf(" %d ", image->image[i][j]);
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 float luminousity(Image *image)
