@@ -1,0 +1,15 @@
+
+
+afficher une partie de la matrice d'une image, paramètres: coordonnées de départ, rayon du carrée à afficher (pour les tests)---ok
+calcul luminosité---ok
+calcul contrast---ok
+amélioration de contraste par function ( une fonction générique qui sera utiliser pour les autres)
+afficher histogramme
+amélioration de contraste par repartition
+amélioration de contraste par repartition par marceau
+amélioration de contraste par égalisation d'histogramme
+function de convolution
+structure de donnée pour un filtre
+fonction de convolution
+Transformé de Fourier + filtres spectral
+Opérations ponctuelle sur les images : Local ou global ( addition, soustraction, multiplication, division, interpolation)
