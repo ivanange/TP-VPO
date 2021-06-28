@@ -10,10 +10,14 @@ int main()
     Image *image1 = parse_image("./data/image.pgm");
     Image *image2 = parse_image("./data/image.pgm");
     Image *apollo = parse_image("./data/apollonian_gasket.ascii.pgm");
+    Image *feep = parse_image("./data/feep.ascii.pgm");
     Image *image = image_add(image1, image2);
     Coordinates coords = {0, 0};
     print_image(image, &coords, 6, 6);
     save(image, "./data/image2.pgm");
+
+    printf("Here is feep: \n\n");
+    print_image(feep, &coords, feep->height, feep->width);
 
     // Hist test;
     // int tt;

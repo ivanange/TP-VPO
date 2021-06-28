@@ -4,6 +4,9 @@
 // Constants
 #define PLOT_SYMBOL (char)254u
 #define PLOT_SCALE 150
+#define ZERO_EDGES 0
+#define PARTIAL_FILTERED_EDGES 1
+#define MIRROR_EDGES 2
 
 typedef struct Coordinates Coordinates;
 struct Coordinates
@@ -55,6 +58,7 @@ typedef struct SpatialFilter SpatialFilter;
 struct SpatialFilter
 {
     FilterMatrix *filters;
+    int length;
 };
 
 typedef struct SpectralFilter SpectralFilter;

@@ -252,10 +252,32 @@ void plot_hist(Hist *hist)
     printf("\n");
 }
 
-// Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
-// {
+Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
+{
+    int, i, j, k;
+    Image *new = malloc(sizeof(Image));
+    (*new) = (*image);
+    new->image = allocate_dynamic_matrix(new->height, new->width);
 
-// }
+    // initialize image
+    for (i = 0; i < new->height; i++)
+    {
+        for (j = 0; j < new->width; j++)
+        {
+            new->image[i][j] = 0;
+        }
+    }
+
+    for (k = 0; k < filter->length; k++)
+    {
+        /* apply each filter */
+
+        // check filter is odd
+
+        // set radius
+        int radius;
+    }
+}
 
 int **allocate_dynamic_matrix(int row, int col)
 {
