@@ -125,7 +125,7 @@ Hist *enhance_by_histogram_equalization(Hist *hist); // en cour
 * @param edges: the mechanism to use to fill edges
 * @return Image*
 */
-Image *convulv(Image *image, SpatialFilter *filter, const char *edges);
+Image *convulv(Image *image, SpatialFilter *filter, int edges);
 
 SpectralImage *FFT(Image *image);
 
@@ -154,6 +154,10 @@ Image *interpolate(Image *image, float factor); // à revoir
 int **allocate_dynamic_matrix(int row, int col);
 
 void deallocate_dynamic_matrix(int **matrix, int row);
+
+float **allocate_dynamic_float_matrix(int row, int col);
+
+void deallocate_dynamic_float_matrix(float **matrix, int row);
 
 char **allocate_dynamic_char_matrix(int row, int col);
 

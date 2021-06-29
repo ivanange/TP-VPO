@@ -3,6 +3,8 @@
         "*.svg": "html",
         "*.njk": "twig",
         "*.html": "html",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "algorithm": "c",
+        "utils.h": "c"
     }
 }

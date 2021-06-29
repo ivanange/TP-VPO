@@ -1,42 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "utils.h"
+#include "filters.h"
 
 int main()
 {
-
-    printf("Hello world!\n");
-
-    Image *image1 = parse_image("./data/image.pgm");
-    Image *image2 = parse_image("./data/image.pgm");
-    // Image *image = image_add(image1, image2);
-    // Image *image = image_sub(image1, image2);
-    Image *image = image_mul(image1, 3);
+    Coordinates origin = {0, 0};
     Image *apollo = parse_image("./data/apollonian_gasket.ascii.pgm");
     Image *feep = parse_image("./data/feep.ascii.pgm");
-    // Image *image = image_add(image1, image2);
+    Image *mona_lisa = parse_image("./data/mona_lisa.ascii.pgm");
 
-    Coordinates coords = {0, 0};
-    print_image(image, &coords, 6, 6);
-    save(image, "./data/image2.pgm");
+    // play with fleep
+    print_image(feep, &origin, feep->height - 1, feep->width - 1);
+    Hist *feep_hist = make_hist(feep, 0);
+    plot_hist(feep_hist);
+    SpatialFilter *moyenneur = create_filters();
+    // Image *feep_moyen = convulv(feep, moyenneur, ZERO_EDGES);
+    Image *feep_moyen = convulv(feep, moyenneur, PARTIAL_FILTERED_EDGES);
+    save(feep_moyen, "./data/feep_moyen_3_partial_filtering.pgm");
 
-    printf("Here is feep: \n\n");
-    print_image(feep, &coords, feep->height - 1, feep->width - 1);
-
-    // Hist test;
-    // int tt;
-    // test.hist = calloc(5, sizeof(float));
-    // test.hist = (float[]){0};
-    // printf("Hello number : %f\n", test.hist[3]);
-
-    // char *ptr;
-    // ptr = (char *)malloc(10);
-    // strcpy(ptr, "Programming");
-    // printf(" %s,  Address = %u\n", ptr, ptr);
-
-    // ptr = (char *)realloc(ptr, 20); //ptr is reallocated with new size
-    // printf(" %s,  Address = %u\n", ptr, ptr);
-    // strcat(ptr, " In 'C'");
-    // printf(" %s,  Address = %u\n", ptr, ptr);
-    // free(ptr);
+    // Image *sum = image_add(feep, feep);
+    // Image *difference = image_sub(feep, feep);
+    // Image *product = image_mul(feep, 3);
 }

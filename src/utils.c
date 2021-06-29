@@ -9,11 +9,11 @@ Image *parse_image(const char *path)
 {
     Image *image = malloc(sizeof(Image));
     FILE *file;
-    char ch;
+    char ch, readChars[256];
     int row, col;
     int ch_int;
 
-    file = fopen(path, "r");
+    file = fopen(path, "r+");
     if (file == NULL)
     {
         fprintf(stderr, "Error: Unable to open file %s\n\n", path);
@@ -36,15 +36,17 @@ Image *parse_image(const char *path)
     while (getc(file) != '\n')
         ; /* skip to end of line*/
 
-    while (getc(file) == '#') /* skip comment lines */
+    fscanf(file, "%s", readChars);
+    while (readChars[0] == '#')
     {
-        while (getc(file) != '\n')
-            ; /* skip to end of comment line */
+        //if a comment, get the rest of the line and a new word
+        fgets(readChars, 255, file);
+        fscanf(file, "%s", readChars);
     }
 
-    fseek(file, -1, SEEK_CUR); /* backup one character*/
-
-    fscanf(file, "%d", &(image->width));
+    //ok, comments are gone
+    //get width, height, color depth
+    sscanf(readChars, "%d", &(image->width));
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
     image->tonal_resolution = image->tonal_resolution + 1;
@@ -97,7 +99,7 @@ void save(Image *img, char *path)
     }
     fprintf(file, "\n");
     fclose(file);
-    printf("Save image done \n");
+    printf("Saved image to %s \n\n", path);
 }
 
 void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y)
@@ -252,39 +254,102 @@ void plot_hist(Hist *hist)
     printf("\n");
 }
 
-// Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
-// {
-//     int, i, j, k;
-//     Image *new = malloc(sizeof(Image));
-//     (*new) = (*image);
-//     new->image = allocate_dynamic_matrix(new->height, new->width);
+Image *convulv(Image *image, SpatialFilter *filter, int edges)
+{
+    int i, j, x, y, x_start, y_start, x_end, y_end, row, col, k, scale = 1, sum = 0, coff = 0, radius_x, radius_y, height = image->height, width = image->width;
+    Image *new = malloc(sizeof(Image));
+    (*new) = (*image);
+    new->image = allocate_dynamic_matrix(height, width);
 
-//     // initialize image
-//     for (i = 0; i < new->height; i++)
-//     {
-//         for (j = 0; j < new->width; j++)
-//         {
-//             new->image[i][j] = 0;
-//         }
-//     }
+    // initialize new image pixels to 0
+    for (i = 0; i < height; i++)
+    {
+        for (j = 0; j < width; j++)
+        {
+            new->image[i][j] = 0;
+        }
+    }
 
-//     for (k = 0; k < filter->length; k++)
-//     {
-//         /* apply each filter */
+    for (k = 0; k < filter->length; k++)
+    {
+        /* apply each filter */
 
-//         // check filter is odd
+        // check filter is odd
+        // printf("length: %d, k: %d, cols: %d, rows: %d\n", filter->length, k, filter->filters[k].cols, filter->filters[k].rows);
+        if (filter->filters[k].cols % 2 == 0 || filter->filters[k].rows % 2 == 0)
+        {
+            perror("filter is not odd");
+            exit(EXIT_FAILURE);
+        }
 
-//         // set radius
-//         int radius;
-//     }
-// }
+        // set radius
+        row = filter->filters[k].rows;
+        col = filter->filters[k].cols;
+        radius_x = floor(row / 2);
+        radius_y = floor(col / 2);
+
+        for (i = 0; i < height; i++)
+        {
+            for (j = 0; j < width; j++)
+            {
+                sum = 0;
+                coff = 0;
+                scale = 1;
+                x_start = 0;
+                x_end = filter->filters[k].rows;
+                y_start = 0;
+                y_end = filter->filters[k].cols;
+
+                if (i - radius_x < 0 || j - radius_y < 0 || i + radius_x >= height || j + radius_y >= width)
+                {
+                    /* handle edges */
+                    switch (edges)
+                    {
+                    case ZERO_EDGES:
+                        scale = 0;
+                        x_end = -1;
+                        break;
+
+                    case PARTIAL_FILTERED_EDGES:
+                        x_start = i - radius_x < 0 ? radius_x - i : 0;
+                        x_end = i + radius_x >= height ? radius_x + filter->filters[k].rows - i : filter->filters[k].rows;
+                        y_start = j - radius_y < 0 ? radius_y - j : 0;
+                        y_end = j + radius_y >= width ? radius_y + filter->filters[k].cols - j : filter->filters[k].cols;
+                        break;
+
+                    default:
+                        break;
+                    }
+                }
+
+                //calculate filter
+                for (x = x_start; x < x_end; x++)
+                {
+                    for (y = y_start; y < y_end; y++)
+                    {
+                        row = (i - radius_x + x + height) % (height);
+                        col = (j - radius_y + y + width) % (width);
+                        sum = sum + floor(image->image[row][col] * filter->filters[k].matrix[x][y]);
+                        coff = coff + filter->filters[k].matrix[x][y];
+                    }
+                }
+                // only for linear filters and coff != 0
+                sum = coff != 0 ? floor(sum / coff) : sum;
+
+                new->image[i][j] = new->image[i][j] + (sum * scale);
+            }
+        }
+    }
+
+    return new;
+}
 
 int **allocate_dynamic_matrix(int row, int col)
 {
     int **ret_val;
     int i;
 
-    ret_val = (int **)malloc(sizeof(int *) * row);
+    ret_val = malloc(sizeof(int *) * row);
     if (ret_val == NULL)
     {
         perror("memory allocation failure");
@@ -293,7 +358,7 @@ int **allocate_dynamic_matrix(int row, int col)
 
     for (i = 0; i < row; ++i)
     {
-        ret_val[i] = (int *)malloc(sizeof(int) * col);
+        ret_val[i] = malloc(sizeof(int) * col);
         if (ret_val[i] == NULL)
         {
             perror("memory allocation failure");
@@ -315,12 +380,12 @@ void deallocate_dynamic_matrix(int **matrix, int row)
     free(matrix);
 }
 
-char **allocate_dynamic_char_matrix(int row, int col)
+float **allocate_dynamic_float_matrix(int row, int col)
 {
-    char **ret_val;
+    float **ret_val;
     int i;
 
-    ret_val = (char **)malloc(sizeof(char *) * row);
+    ret_val = malloc(sizeof(float *) * row);
     if (ret_val == NULL)
     {
         perror("memory allocation failure");
@@ -329,7 +394,43 @@ char **allocate_dynamic_char_matrix(int row, int col)
 
     for (i = 0; i < row; ++i)
     {
-        ret_val[i] = (char *)malloc(sizeof(char) * col);
+        ret_val[i] = malloc(sizeof(float) * col);
+        if (ret_val[i] == NULL)
+        {
+            perror("memory allocation failure");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return ret_val;
+}
+
+void deallocate_dynamic_float_matrix(float **matrix, int row)
+{
+    int i;
+
+    for (i = 0; i < row; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+char **allocate_dynamic_char_matrix(int row, int col)
+{
+    char **ret_val;
+    int i;
+
+    ret_val = malloc(sizeof(char *) * row);
+    if (ret_val == NULL)
+    {
+        perror("memory allocation failure");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < row; ++i)
+    {
+        ret_val[i] = malloc(sizeof(char) * col);
         if (ret_val[i] == NULL)
         {
             perror("memory allocation failure");

@@ -6,11 +6,19 @@
 
 int main()
 {
-printf("Hello world!\n");
-int r;
-r = MAX(5,6);
-printf("%d\n",r );
-return 0;
+    int mat[3][2] = {{1, 2}, {3, 4}, {5, 6}};
+
+    printf("%d\n", mat[1][1]);
+
+    for (int i = 0; i < -1; i++)
+    {
+        printf("Hello");
+    }
+
+    // int r;
+    // r = MAX(5, 6);
+    // printf("%d\n", r);
+    return 0;
 }
 //
 //

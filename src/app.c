@@ -1,33 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "utils.h"
+#include "filters.h"
 
 int main()
 {
-    printf("Image Processing!\n");
+    Coordinates coords = {0, 0};
+    Image *feep = parse_image("./data/feep.ascii.pgm");
+    Image *mona_lisa = parse_image("./data/mona_lisa.ascii.pgm");
+    Image *apollo = parse_image("./data/apollonian_gasket.ascii.pgm");
+    SpatialFilter *moyenneur = create_filters();
 
-    Image *image = parse_image("./data/image.pgm");
-
-    Coordinates coords = {18, 50};
-
-    print_image(image, &coords, 20, 20);
-
-    printf("pixel at 18:53 %d \n", image->image[18][53]);
-
-    Hist *hist = make_hist(image, 0);
-
-    printf("number of pixels at 193: %.2f \n", hist->hist[193]);
-
-    // printf("number of pixels at 193: %d \n", hist->hist_coordinates[193].length);
-    printf("coordinates of the first pixel of shade 193: x: %d, y: %d \n", hist->hist_coordinates[193].coordinates[0].x, hist->hist_coordinates[193].coordinates[0].y);
-
-    printf("luminousity: %.2f \n", luminousity(image));
-
-    printf("contrast: %.2f \n", contrast(image));
-
-    // plot_hist(hist);
-
-    print_hist(hist);
+    // play with fleep
+    Image *feep_moyen = convulv(feep, moyenneur, MIRROR_EDGES);
+    // print_image(feep_moyen, &coords, feep->height - 1, feep->width - 1);
+    save(feep_moyen, "./data/feep_moyen_3.pgm");
 
     return 0;
 }
