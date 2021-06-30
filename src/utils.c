@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include "utils.h"
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 Image *parse_image(const char *path)
 {
@@ -278,11 +276,6 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges)
 
         // check filter is odd
         // printf("length: %d, k: %d, cols: %d, rows: %d\n", filter->length, k, filter->filters[k].cols, filter->filters[k].rows);
-        if (filter->filters[k].cols % 2 == 0 || filter->filters[k].rows % 2 == 0)
-        {
-            perror("filter is not odd");
-            exit(EXIT_FAILURE);
-        }
 
         // set radius
         row = filter->filters[k].rows;
@@ -292,8 +285,10 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges)
 
         for (i = 0; i < height; i++)
         {
+            // printf("%d\n", i);
             for (j = 0; j < width; j++)
             {
+                // printf("%d,%d\n", i, j);
                 sum = 0;
                 coff = 0;
                 scale = 1;
@@ -314,9 +309,9 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges)
 
                     case PARTIAL_FILTERED_EDGES:
                         x_start = i - radius_x < 0 ? radius_x - i : 0;
-                        x_end = i + radius_x >= height ? radius_x + filter->filters[k].rows - i : filter->filters[k].rows;
+                        x_end = i + radius_x >= height ? MIN(radius_x + filter->filters[k].rows - i, filter->filters[k].rows) : filter->filters[k].rows;
                         y_start = j - radius_y < 0 ? radius_y - j : 0;
-                        y_end = j + radius_y >= width ? radius_y + filter->filters[k].cols - j : filter->filters[k].cols;
+                        y_end = j + radius_y >= width ? MIN(radius_y + filter->filters[k].cols - j, filter->filters[k].cols) : filter->filters[k].cols;
                         break;
 
                     default:
@@ -325,18 +320,7 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges)
                 }
 
                 //calculate filter
-                for (x = x_start; x < x_end; x++)
-                {
-                    for (y = y_start; y < y_end; y++)
-                    {
-                        row = (i - radius_x + x + height) % (height);
-                        col = (j - radius_y + y + width) % (width);
-                        sum = sum + floor(image->image[row][col] * filter->filters[k].matrix[x][y]);
-                        coff = coff + filter->filters[k].matrix[x][y];
-                    }
-                }
-                // only for linear filters and coff != 0
-                sum = coff != 0 ? floor(sum / coff) : sum;
+                sum = filter->convulv_function(image->image, height, width, i, j, filter->filters + k, radius_x, radius_y, x_start, y_start, x_end, y_end);
 
                 new->image[i][j] = new->image[i][j] + (sum * scale);
             }

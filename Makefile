@@ -5,7 +5,7 @@ LIB = lib
 OBJ = obj
 BIN = bin
 OBJECTS=$(OBJ)/utils.o
-HEADERS= $(SRC)/utils.h
+HEADERS= $(SRC)/utils.h $(SRC)/filters.h
 
 all : app test
 
