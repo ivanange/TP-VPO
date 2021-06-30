@@ -2,18 +2,16 @@
 #include <stdlib.h>
 #include <math.h>
 #include "utils.h"
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 Image *parse_image(const char *path)
 {
     Image *image = malloc(sizeof(Image));
     FILE *file;
-    char ch;
+    char ch, readChars[256];
     int row, col;
     int ch_int;
 
-    file = fopen(path, "r");
+    file = fopen(path, "r+");
     if (file == NULL)
     {
         fprintf(stderr, "Error: Unable to open file %s\n\n", path);
@@ -36,15 +34,17 @@ Image *parse_image(const char *path)
     while (getc(file) != '\n')
         ; /* skip to end of line*/
 
-    while (getc(file) == '#') /* skip comment lines */
+    fscanf(file, "%s", readChars);
+    while (readChars[0] == '#')
     {
-        while (getc(file) != '\n')
-            ; /* skip to end of comment line */
+        //if a comment, get the rest of the line and a new word
+        fgets(readChars, 255, file);
+        fscanf(file, "%s", readChars);
     }
 
-    fseek(file, -1, SEEK_CUR); /* backup one character*/
-
-    fscanf(file, "%d", &(image->width));
+    //ok, comments are gone
+    //get width, height, color depth
+    sscanf(readChars, "%d", &(image->width));
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
     image->tonal_resolution = image->tonal_resolution + 1;
@@ -97,7 +97,7 @@ void save(Image *img, char *path)
     }
     fprintf(file, "\n");
     fclose(file);
-    printf("Save image done \n");
+    printf("Saved image to %s \n\n", path);
 }
 
 void print_image(Image *image, Coordinates *start_point, int radius_x, int radius_y)
@@ -108,7 +108,7 @@ void print_image(Image *image, Coordinates *start_point, int radius_x, int radiu
     {
         for (int j = start_point->y; j <= start_point->y + radius_y; j++)
         {
-            printf(" %d ", image->image[i][j]);
+            printf(" %3d ", image->image[i][j]);
         }
         printf("\n");
     }
@@ -252,39 +252,88 @@ void plot_hist(Hist *hist)
     printf("\n");
 }
 
-// Image *convulv(Image *image, SpatialFilter *filter, const char *edges)
-// {
-//     int, i, j, k;
-//     Image *new = malloc(sizeof(Image));
-//     (*new) = (*image);
-//     new->image = allocate_dynamic_matrix(new->height, new->width);
+Image *convulv(Image *image, SpatialFilter *filter, int edges)
+{
+    int i, j, x, y, x_start, y_start, x_end, y_end, row, col, k, scale = 1, sum = 0, coff = 0, radius_x, radius_y, height = image->height, width = image->width;
+    Image *new = malloc(sizeof(Image));
+    (*new) = (*image);
+    new->image = allocate_dynamic_matrix(height, width);
 
-//     // initialize image
-//     for (i = 0; i < new->height; i++)
-//     {
-//         for (j = 0; j < new->width; j++)
-//         {
-//             new->image[i][j] = 0;
-//         }
-//     }
+    // initialize new image pixels to 0
+    for (i = 0; i < height; i++)
+    {
+        for (j = 0; j < width; j++)
+        {
+            new->image[i][j] = 0;
+        }
+    }
 
-//     for (k = 0; k < filter->length; k++)
-//     {
-//         /* apply each filter */
+    for (k = 0; k < filter->length; k++)
+    {
+        /* apply each filter */
 
-//         // check filter is odd
+        // check filter is odd
+        // printf("length: %d, k: %d, cols: %d, rows: %d\n", filter->length, k, filter->filters[k].cols, filter->filters[k].rows);
 
-//         // set radius
-//         int radius;
-//     }
-// }
+        // set radius
+        row = filter->filters[k].rows;
+        col = filter->filters[k].cols;
+        radius_x = floor(row / 2);
+        radius_y = floor(col / 2);
+
+        for (i = 0; i < height; i++)
+        {
+            // printf("%d\n", i);
+            for (j = 0; j < width; j++)
+            {
+                // printf("%d,%d\n", i, j);
+                sum = 0;
+                coff = 0;
+                scale = 1;
+                x_start = 0;
+                x_end = filter->filters[k].rows;
+                y_start = 0;
+                y_end = filter->filters[k].cols;
+
+                if (i - radius_x < 0 || j - radius_y < 0 || i + radius_x >= height || j + radius_y >= width)
+                {
+                    /* handle edges */
+                    switch (edges)
+                    {
+                    case ZERO_EDGES:
+                        scale = 0;
+                        x_end = -1;
+                        break;
+
+                    case PARTIAL_FILTERED_EDGES:
+                        x_start = i - radius_x < 0 ? radius_x - i : 0;
+                        x_end = i + radius_x >= height ? MIN(radius_x + filter->filters[k].rows - i, filter->filters[k].rows) : filter->filters[k].rows;
+                        y_start = j - radius_y < 0 ? radius_y - j : 0;
+                        y_end = j + radius_y >= width ? MIN(radius_y + filter->filters[k].cols - j, filter->filters[k].cols) : filter->filters[k].cols;
+                        break;
+
+                    default:
+                        break;
+                    }
+                }
+
+                //calculate filter
+                sum = filter->convulv_function(image->image, height, width, i, j, filter->filters + k, radius_x, radius_y, x_start, y_start, x_end, y_end);
+
+                new->image[i][j] = new->image[i][j] + (sum * scale);
+            }
+        }
+    }
+
+    return new;
+}
 
 int **allocate_dynamic_matrix(int row, int col)
 {
     int **ret_val;
     int i;
 
-    ret_val = (int **)malloc(sizeof(int *) * row);
+    ret_val = malloc(sizeof(int *) * row);
     if (ret_val == NULL)
     {
         perror("memory allocation failure");
@@ -293,7 +342,7 @@ int **allocate_dynamic_matrix(int row, int col)
 
     for (i = 0; i < row; ++i)
     {
-        ret_val[i] = (int *)malloc(sizeof(int) * col);
+        ret_val[i] = malloc(sizeof(int) * col);
         if (ret_val[i] == NULL)
         {
             perror("memory allocation failure");
@@ -315,12 +364,12 @@ void deallocate_dynamic_matrix(int **matrix, int row)
     free(matrix);
 }
 
-char **allocate_dynamic_char_matrix(int row, int col)
+float **allocate_dynamic_float_matrix(int row, int col)
 {
-    char **ret_val;
+    float **ret_val;
     int i;
 
-    ret_val = (char **)malloc(sizeof(char *) * row);
+    ret_val = malloc(sizeof(float *) * row);
     if (ret_val == NULL)
     {
         perror("memory allocation failure");
@@ -329,7 +378,43 @@ char **allocate_dynamic_char_matrix(int row, int col)
 
     for (i = 0; i < row; ++i)
     {
-        ret_val[i] = (char *)malloc(sizeof(char) * col);
+        ret_val[i] = malloc(sizeof(float) * col);
+        if (ret_val[i] == NULL)
+        {
+            perror("memory allocation failure");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return ret_val;
+}
+
+void deallocate_dynamic_float_matrix(float **matrix, int row)
+{
+    int i;
+
+    for (i = 0; i < row; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
+char **allocate_dynamic_char_matrix(int row, int col)
+{
+    char **ret_val;
+    int i;
+
+    ret_val = malloc(sizeof(char *) * row);
+    if (ret_val == NULL)
+    {
+        perror("memory allocation failure");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < row; ++i)
+    {
+        ret_val[i] = malloc(sizeof(char) * col);
         if (ret_val[i] == NULL)
         {
             perror("memory allocation failure");
@@ -375,7 +460,76 @@ Image *image_add(Image *image1, Image *image2)
     {
         for (int col = 0; col < image->width; col++)
         {
-            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
+            acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+        }
+    }
+    image->tonal_resolution = pixMax;
+
+    return image;
+}
+
+Image *image_sub(Image *image1, Image *image2)
+{
+    // image1 - image2
+    Image *image = malloc(sizeof(Image));
+    int pixMax = 0, acpix;
+    if (image1->width != image2->width || image1->height != image2->height)
+    {
+        printf("ERROR(1): image1 and image2 should have the same dimension\n");
+        exit(1);
+    }
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+        }
+    }
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
+            image->image[row][col] = acpix;
+            pixMax = MAX(acpix, pixMax);
+        }
+    }
+
+    image->tonal_resolution = pixMax;
+
+    return image;
+}
+
+Image *image_mul(Image *image1, int ratio)
+{
+    // image1 * ratio
+    Image *image = malloc(sizeof(Image));
+    int pixMax = 0, acpix;
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = 0;
+        }
+    }
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            acpix = MIN((image1->image[row][col] * ratio), 255);
             image->image[row][col] = acpix;
             pixMax = MAX(acpix, pixMax);
         }
