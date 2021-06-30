@@ -1,6 +1,9 @@
 #ifndef DEF_UTILS
 #define DEF_UTILS
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 // Constants
 #define PLOT_SYMBOL (char)254u
 #define PLOT_SCALE 150
@@ -58,6 +61,8 @@ typedef struct SpatialFilter SpatialFilter;
 struct SpatialFilter
 {
     FilterMatrix *filters;
+    int (*convulv_function)(int **image, int height, int width, int i, int j, FilterMatrix *filter, int radius_x, int radius_y, int x_start, int y_start, int x_end, int y_end);
+
     int length;
 };
 
