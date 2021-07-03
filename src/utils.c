@@ -47,6 +47,7 @@ Image *parse_image(const char *path)
     sscanf(readChars, "%d", &(image->width));
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
+    image->pixMax = image->tonal_resolution;
     image->tonal_resolution = image->tonal_resolution + 1;
     image->spatial_resolution = image->height * image->width;
 
@@ -85,8 +86,9 @@ void save(Image *img, char *path)
 
     file = fopen(path, "w");
     fprintf(file, "P2\n");
+    fprintf(file, "# by code source author\n");
     fprintf(file, "%d %d\n", nc, nr);
-    fprintf(file, "%d\n", img->tonal_resolution);
+    fprintf(file, "%d\n", img->pixMax);
 
     for (row = 0; row < nr; row++)
     {
@@ -537,4 +539,78 @@ Image *image_mul(Image *image1, int ratio)
     image->tonal_resolution = pixMax;
 
     return image;
+}
+
+Image *enhance_by_linear_trans(Image *image1)
+{
+    int LUT[256];
+    int minI, maxI;
+    Image *image = malloc(sizeof(Image));
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->pixMax = image1->pixMax;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    maxI = image1->pixMax;
+    minI = image1->image[0][0];
+
+    for (int row = 0; row < image1->height; row++)
+    {
+        for (int col = 0; col < image1->width; col++)
+        {
+            if (minI >= image1->image[row][col]) {
+                minI = image1->image[row][col];
+            }
+        }
+    }
+
+    for (int i = 0; i <= 255; i++) {
+        LUT[i] = 255*(i-minI)/(maxI - minI);
+    }
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = LUT[image1->image[row][col]];
+        }
+    }
+
+    return image ;
+}
+
+
+Image *enhance_by_histogram_equalization(Image *image1)
+{
+
+    Hist *hist = make_hist(image1, 1);
+    // print_hist(hist);
+    float *C = malloc(256*sizeof(int));
+    for (int i = 0; i <= 255; i++) {
+        float somme = 0.00;
+        for ( int j = 0; j <= i ; j++) {
+
+            somme = somme + hist->hist[j];
+        }
+        C[i] = somme;
+        printf("%f\n", C[i]);
+    }
+
+    Image *image = malloc(sizeof(Image));
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->pixMax = image1->pixMax;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = C[image1->image[row][col]]*255;
+        }
+    }
+
+    return image;
+
+
 }

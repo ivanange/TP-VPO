@@ -23,6 +23,7 @@ struct Image
 {
     int height;
     int width;
+    int pixMax;
     int spatial_resolution; // height * width
     int tonal_resolution;   // number of shades of gray
     int **image;
@@ -115,13 +116,13 @@ void print_hist(Hist *hist);
 
 void plot_hist(Hist *hist);
 
-Image *enhance_by_linear_trans(Hist *hist); // en cour
+Image *enhance_by_linear_trans(Image *image1); // ok
 
 Image *enhance_by_linear_trans_sat(Hist *hist); // à revoir
 
 Image *enhance_by_linear_trans_frag(Hist *hist); // à revoir
 
-Hist *enhance_by_histogram_equalization(Hist *hist); // en cour
+Image *enhance_by_histogram_equalization(Image *image1); // en cour
 
 /**
 * Applies filter to image
