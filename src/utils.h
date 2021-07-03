@@ -128,10 +128,10 @@ Image *enhance_by_histogram_equalization(Image *image1); // en cour
 * Applies filter to image
 * @param image: the image to convulv
 * @param filter filter to apply
-* @param edges: the mechanism to use to fill edges
+* @param edges_fill: the mechanism to use to fill edges_fill
 * @return Image*
 */
-Image *convulv(Image *image, SpatialFilter *filter, int edges);
+Image *convulv(Image *image, SpatialFilter *filter, int edges_fill);
 
 SpectralImage *FFT(Image *image);
 

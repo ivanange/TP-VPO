@@ -10,6 +10,7 @@ struct SpatialFilterList
 {
     SpatialFilter *mean_3;
     SpatialFilter *gaussian_3;
+    SpatialFilter *median_3;
 };
 
 int linear_convulv(int **image, int height, int width, int i, int j, FilterMatrix *filter, int radius_x, int radius_y, int x_start, int y_start, int x_end, int y_end)
@@ -19,8 +20,12 @@ int linear_convulv(int **image, int height, int width, int i, int j, FilterMatri
     {
         for (y = y_start; y < y_end; y++)
         {
-            row = (i - radius_x + x + height) % (height);
-            col = (j - radius_y + y + width) % (width);
+            row = (i - radius_x + x);
+            row = (i - radius_x < 0 ? abs(row + 1) : (i + radius_x >= height ? (2 * height) - (row + 1) : row)) % (height);
+
+            col = (j - radius_y + y);
+            col = (j - radius_y < 0 ? abs(col + 1) : (j + radius_y >= width ? (2 * width) - (col + 1) : col)) % (width);
+
             sum = sum + floor(image[row][col] * filter->matrix[x][y]);
             coff = coff + filter->matrix[x][y];
         }
@@ -29,6 +34,58 @@ int linear_convulv(int **image, int height, int width, int i, int j, FilterMatri
     sum = coff != 0 ? floor(sum / coff) : sum;
 
     return sum;
+}
+
+int median_convulv(int **image, int height, int width, int i, int j, FilterMatrix *filter, int radius_x, int radius_y, int x_start, int y_start, int x_end, int y_end)
+{
+    int x, y, row, col, k = 0, length = filter->rows * filter->cols, min_idx, temp;
+    int *list = malloc(sizeof(int) * length);
+
+    // take convolution elements into list
+    for (x = x_start; x < x_end; x++)
+    {
+        for (y = y_start; y < y_end; y++)
+        {
+            row = (i - radius_x + x);
+            row = (row < 0 ? abs(row + 1) : (row >= height ? (2 * height) - (row + 1) : row)) % (height);
+
+            col = (j - radius_y + y);
+            col = (col < 0 ? abs(col + 1) : (col >= width ? (2 * width) - (col + 1) : col)) % (width);
+
+            list[k] = image[row][col];
+            k++;
+        }
+    }
+
+    length = k;
+    if (length == 0)
+    {
+        return 0;
+    }
+
+    // sort
+    for (k = 0; k < length - 1; k++)
+    {
+        // Find the minimum element in unsorted array
+        min_idx = k;
+        for (j = k + 1; j < length; j++)
+        {
+            if (list[j] < list[min_idx])
+            {
+                min_idx = j;
+            }
+        }
+
+        //swap
+        temp = list[min_idx];
+        list[min_idx] = list[k];
+        list[k] = temp;
+    }
+
+    temp = list[(int)ceil(length / 2)];
+    free(list);
+
+    return temp;
 }
 
 SpatialFilter *make_mean_filter(int size)
@@ -84,11 +141,24 @@ SpatialFilter *make_gaussian_filter(int size, float mean, float std, float scale
     return gaussian;
 }
 
+SpatialFilter *make_median_filter(int size)
+{
+    SpatialFilter *median = malloc(sizeof(SpatialFilter));
+    median->filters = malloc(sizeof(FilterMatrix));
+    median->convulv_function = &median_convulv;
+    median->filters[0].cols = size;
+    median->filters[0].rows = size;
+    median->length = 1;
+
+    return median;
+}
+
 SpatialFilterList *create_filters()
 {
     SpatialFilterList *spatial_filters = malloc(sizeof(SpatialFilterList));
     spatial_filters->mean_3 = make_mean_filter(3);
     spatial_filters->gaussian_3 = make_gaussian_filter(3, 0, 1, 1000);
+    spatial_filters->median_3 = make_median_filter(3);
 
     return spatial_filters;
 }
