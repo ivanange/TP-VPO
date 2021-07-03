@@ -1,25 +1,5 @@
 
 
-<<<<<<< HEAD
-*Afficher une partie de la matrice d'une image, paramètres: coordonnées de départ, rayon du carrée à afficher (pour les tests)---ok
-*Calcul luminosité---ok
-*Calcul contrast---ok
-*Amélioration de contraste par function ( une fonction générique qui sera utiliser pour les autres)
-afficher histogramme
-    >amélioration de contraste par transformation linéaire
-    >amélioration de contraste par transformation linéaire avec saturation
-    >amélioration de contraste par transformation linéaire par morçeaux
-    >amélioration de contraste par transformation non linéaire
-*Function de convolution
-*Structure de donnée pour un filtrefonction de convolution
-*Transformé de Fourier + filtres spectral
-*Opérations ponctuelle sur les images : Local ou global
-    >addition --ok
-    >soustraction --ok
-    >multiplication --ok
-    >division --ok avec multiplication
-    >interpolation -- à revoir
-=======
 afficher une partie de la matrice d'une image, paramètres: coordonnées de départ, rayon du carrée à afficher (pour les tests)---ok
 calcul luminosité---ok
 calcul contrast---ok
@@ -33,4 +13,3 @@ structure de donnée pour un filtre
 fonction de convolution
 Transformé de Fourier + filtres spectral
 Opérations ponctuelle sur les images : Local ou global ( addition, soustraction, multiplication, division, interpolation)
->>>>>>> 65aad935b165f04a20ee0272e5cd157b6f8d62d1
