@@ -22,6 +22,11 @@ int main()
     // Image *feep_moyen = convulv(feep, spatial_filters->gaussian_3, PARTIAL_FILTERED_EDGES);
     // save(feep_moyen, "./data/feep_moyen_3_partial_filtering.pgm");
 
+    //mona lisa
+    // Image *mona_lisa_gaussian_3 = convulv(mona_lisa, spatial_filters->gaussian_3, PARTIAL_FILTERED_EDGES);
+    // save(mona_lisa_gaussian_3, "./data/mona_lisa_gaussian_3_partial_filtering.pgm");
+
+    //circuit with salt & pepper noise
     Image *circuit_median = convulv(circuit, spatial_filters->median_3, PARTIAL_FILTERED_EDGES);
     save(circuit_median, "./data/circuit_median_3_partial_filtering.pgm");
 

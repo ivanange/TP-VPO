@@ -15,27 +15,33 @@ struct SpatialFilterList
     SpatialFilter *max_3;
 };
 
+// calculate targeted column and row
+void calc_indexes(int *row, int *col, int i, int j, int x, int y, int radius_x, int radius_y, int height, int width)
+{
+    *row = (i - radius_x + x);
+    *row = (i - radius_x < 0 ? abs(*row + 1) : (i + radius_x >= height ? (2 * height) - (*row + 1) : *row)) % (height);
+
+    *col = (j - radius_y + y);
+    *col = (j - radius_y < 0 ? abs(*col + 1) : (j + radius_y >= width ? (2 * width) - (*col + 1) : *col)) % (width);
+}
+
 int linear_convulv(int **image, int height, int width, int i, int j, FilterMatrix *filter, int radius_x, int radius_y, int x_start, int y_start, int x_end, int y_end)
 {
-    int x, y, row, col, sum = 0, coff = 0;
+    int x, y, row, col, coff = 0;
+    float sum = 0;
     for (x = x_start; x < x_end; x++)
     {
         for (y = y_start; y < y_end; y++)
         {
-            row = (i - radius_x + x);
-            row = (i - radius_x < 0 ? abs(row + 1) : (i + radius_x >= height ? (2 * height) - (row + 1) : row)) % (height);
-
-            col = (j - radius_y + y);
-            col = (j - radius_y < 0 ? abs(col + 1) : (j + radius_y >= width ? (2 * width) - (col + 1) : col)) % (width);
-
-            sum = sum + floor(image[row][col] * filter->matrix[x][y]);
+            calc_indexes(&row, &col, i, j, x, y, radius_x, radius_y, height, width);
+            sum = sum + image[row][col] * filter->matrix[x][y];
             coff = coff + filter->matrix[x][y];
         }
     }
     // only for coff != 0
-    sum = coff != 0 ? floor(sum / coff) : sum;
+    sum = floor(coff != 0 ? sum / coff : sum);
 
-    return sum;
+    return (int)sum;
 }
 
 int median_convulv(int **image, int height, int width, int i, int j, FilterMatrix *filter, int radius_x, int radius_y, int x_start, int y_start, int x_end, int y_end)
@@ -48,12 +54,7 @@ int median_convulv(int **image, int height, int width, int i, int j, FilterMatri
     {
         for (y = y_start; y < y_end; y++)
         {
-            row = (i - radius_x + x);
-            row = (row < 0 ? abs(row + 1) : (row >= height ? (2 * height) - (row + 1) : row)) % (height);
-
-            col = (j - radius_y + y);
-            col = (col < 0 ? abs(col + 1) : (col >= width ? (2 * width) - (col + 1) : col)) % (width);
-
+            calc_indexes(&row, &col, i, j, x, y, radius_x, radius_y, height, width);
             list[k] = image[row][col];
             k++;
         }
@@ -100,11 +101,7 @@ int min_convulv(int **image, int height, int width, int i, int j, FilterMatrix *
     {
         for (y = y_start; y < y_end; y++)
         {
-            row = (i - radius_x + x);
-            row = (row < 0 ? abs(row + 1) : (row >= height ? (2 * height) - (row + 1) : row)) % (height);
-
-            col = (j - radius_y + y);
-            col = (col < 0 ? abs(col + 1) : (col >= width ? (2 * width) - (col + 1) : col)) % (width);
+            calc_indexes(&row, &col, i, j, x, y, radius_x, radius_y, height, width);
 
             list[k] = image[row][col];
             k++;
@@ -140,11 +137,7 @@ int max_convulv(int **image, int height, int width, int i, int j, FilterMatrix *
     {
         for (y = y_start; y < y_end; y++)
         {
-            row = (i - radius_x + x);
-            row = (row < 0 ? abs(row + 1) : (row >= height ? (2 * height) - (row + 1) : row)) % (height);
-
-            col = (j - radius_y + y);
-            col = (col < 0 ? abs(col + 1) : (col >= width ? (2 * width) - (col + 1) : col)) % (width);
+            calc_indexes(&row, &col, i, j, x, y, radius_x, radius_y, height, width);
 
             list[k] = image[row][col];
             k++;
