@@ -543,7 +543,8 @@ Image *image_mul(Image *image1, int ratio)
 
 Image *enhance_by_linear_trans(Image *image1)
 {
-    int LUT[256];
+    int pixmax = image1->pixMax;
+    int LUT[pixmax+1];
     int minI, maxI;
     Image *image = malloc(sizeof(Image));
     image->width = image1->width;
@@ -565,9 +566,9 @@ Image *enhance_by_linear_trans(Image *image1)
         }
     }
 
-    for (int i = 0; i <= 255; i++)
+    for (int i = 0; i <= pixmax; i++)
     {
-        LUT[i] = 255 * (i - minI) / (maxI - minI);
+        LUT[i] = pixmax * (i - minI) / (maxI - minI);
     }
 
     for (int row = 0; row < image->height; row++)
@@ -585,9 +586,10 @@ Image *enhance_by_histogram_equalization(Image *image1)
 {
 
     Hist *hist = make_hist(image1, 1);
+    int pixmax = image1->pixMax;
     // print_hist(hist);
-    float *C = malloc(256 * sizeof(int));
-    for (int i = 0; i <= 255; i++)
+    float *C = malloc((pixmax+1) * sizeof(int));
+    for (int i = 0; i <= pixmax; i++)
     {
         float somme = 0.00;
         for (int j = 0; j <= i; j++)
@@ -596,7 +598,7 @@ Image *enhance_by_histogram_equalization(Image *image1)
             somme = somme + hist->hist[j];
         }
         C[i] = somme;
-        printf("%f\n", C[i]);
+        // printf("%f\n", C[i]);
     }
 
     Image *image = malloc(sizeof(Image));
@@ -609,7 +611,7 @@ Image *enhance_by_histogram_equalization(Image *image1)
     {
         for (int col = 0; col < image->width; col++)
         {
-            image->image[row][col] = C[image1->image[row][col]] * 255;
+            image->image[row][col] = C[image1->image[row][col]] * pixmax;
         }
     }
 
