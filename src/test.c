@@ -22,4 +22,23 @@ int main()
     // Image *sum = image_add(feep, feep);
     // Image *difference = image_sub(feep, feep);
     // Image *product = image_mul(feep, 3);
+
+
+    Image *fig3_brillant = parse_image("./data/sd/cacao_obscure.pgm");
+
+    // printf("%d\n", obscure->spatial_resolution);
+    // printf("%d\n", feep->tonal_resolution);
+    Coordinates coords = {0, 0};
+    Image *fig3_contrate = malloc(sizeof(Image));
+    fig3_contrate = enhance_by_histogram_equalization(fig3_brillant);
+    //
+    print_image(fig3_contrate, &coords, 23, 23);
+    // Hist *hist = make_hist(obscure, 0);
+
+    // printf("number of pixels at 193: %.2f \n", hist->hist[193]);
+
+    // print_hist(hist);
+
+    save(fig3_contrate, "./data/cacao_constrate.pgm");
+
 }
