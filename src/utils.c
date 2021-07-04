@@ -48,7 +48,7 @@ Image *parse_image(const char *path)
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->tonal_resolution));
     image->pixMax = image->tonal_resolution;
-    image->tonal_resolution = image->tonal_resolution + 1;
+    image->tonal_resolution++;
     image->spatial_resolution = image->height * image->width;
 
     printf("\n width: %d", image->width);
@@ -169,7 +169,7 @@ Hist *make_hist(Image *image, int normalize)
         for (int j = 0; j < image->width; j++)
         {
             shade = image->image[i][j];
-            histogram->hist[shade] = histogram->hist[shade] + 1;
+            histogram->hist[shade]++;
 
             Coordinates *coords = malloc(sizeof(Coordinates));
             coords->x = i;
@@ -197,7 +197,7 @@ Hist *make_hist(Image *image, int normalize)
                     // got more memory, append to array
                     histogram->hist_coordinates[shade].coordinates = new;
                     histogram->hist_coordinates[shade].coordinates[histogram->hist_coordinates[shade].length] = *coords;
-                    histogram->hist_coordinates[shade].length = histogram->hist_coordinates[shade].length + 1;
+                    histogram->hist_coordinates[shade].length++;
                 }
             }
         }
@@ -254,7 +254,7 @@ void plot_hist(Hist *hist)
     printf("\n");
 }
 
-Image *convulv(Image *image, SpatialFilter *filter, int edges)
+Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
 {
     int i, j, x, y, x_start, y_start, x_end, y_end, row, col, k, scale = 1, sum = 0, coff = 0, radius_x, radius_y, height = image->height, width = image->width;
     Image *new = malloc(sizeof(Image));
@@ -299,12 +299,12 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges)
 
                 if (i - radius_x < 0 || j - radius_y < 0 || i + radius_x >= height || j + radius_y >= width)
                 {
-                    /* handle edges */
-                    switch (edges)
+                    /* handle edges_fill */
+                    switch (edges_fill)
                     {
                     case ZERO_EDGES:
                         scale = 0;
-                        x_end = -1;
+                        x_end = 0;
                         break;
 
                     case PARTIAL_FILTERED_EDGES:
@@ -322,7 +322,7 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges)
                 //calculate filter
                 sum = filter->convulv_function(image->image, height, width, i, j, filter->filters + k, radius_x, radius_y, x_start, y_start, x_end, y_end);
 
-                new->image[i][j] = new->image[i][j] + (sum * scale);
+                new->image[i][j] = MIN(MAX(0, new->image[i][j] + (sum * scale)), 255);
             }
         }
     }
@@ -558,14 +558,16 @@ Image *enhance_by_linear_trans(Image *image1)
     {
         for (int col = 0; col < image1->width; col++)
         {
-            if (minI >= image1->image[row][col]) {
+            if (minI >= image1->image[row][col])
+            {
                 minI = image1->image[row][col];
             }
         }
     }
 
-    for (int i = 0; i <= 255; i++) {
-        LUT[i] = 255*(i-minI)/(maxI - minI);
+    for (int i = 0; i <= 255; i++)
+    {
+        LUT[i] = 255 * (i - minI) / (maxI - minI);
     }
 
     for (int row = 0; row < image->height; row++)
@@ -576,19 +578,20 @@ Image *enhance_by_linear_trans(Image *image1)
         }
     }
 
-    return image ;
+    return image;
 }
-
 
 Image *enhance_by_histogram_equalization(Image *image1)
 {
 
     Hist *hist = make_hist(image1, 1);
     // print_hist(hist);
-    float *C = malloc(256*sizeof(int));
-    for (int i = 0; i <= 255; i++) {
+    float *C = malloc(256 * sizeof(int));
+    for (int i = 0; i <= 255; i++)
+    {
         float somme = 0.00;
-        for ( int j = 0; j <= i ; j++) {
+        for (int j = 0; j <= i; j++)
+        {
 
             somme = somme + hist->hist[j];
         }
@@ -606,11 +609,9 @@ Image *enhance_by_histogram_equalization(Image *image1)
     {
         for (int col = 0; col < image->width; col++)
         {
-            image->image[row][col] = C[image1->image[row][col]]*255;
+            image->image[row][col] = C[image1->image[row][col]] * 255;
         }
     }
 
     return image;
-
-
 }
