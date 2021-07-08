@@ -8,11 +8,11 @@
 typedef struct SpatialFilterList SpatialFilterList;
 struct SpatialFilterList
 {
-    SpatialFilter *mean_3;
-    SpatialFilter *gaussian_3;
-    SpatialFilter *median_3;
-    SpatialFilter *min_3;
-    SpatialFilter *max_3;
+    SpatialFilter *mean;
+    SpatialFilter *gaussian;
+    SpatialFilter *median;
+    SpatialFilter *min;
+    SpatialFilter *max;
 };
 
 // calculate targeted column and row
@@ -252,7 +252,7 @@ SpatialFilter *make_max_filter(int size)
     return max;
 }
 
-SpatialFilterList *create_filters()
+SpatialFilterList *create_filters(int n)
 {
     SpatialFilterList *spatial_filters = malloc(sizeof(SpatialFilterList));
     spatial_filters->mean = make_mean_filter(n);

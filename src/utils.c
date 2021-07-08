@@ -316,7 +316,7 @@ void histogramme(Image* image){
         
     }
 
-void print_hist(Image *image)
+void print_histogramme(Image *image)
 {
     printf("\thistogramme\n");
     int tab[image->tonal_resolution]; 
@@ -339,7 +339,7 @@ void print_hist(Image *image)
         }
         
     }
-    for (int i = 0; i < image->image->tonal_resolution; i++)
+    for (int i = 0; i < image->tonal_resolution; i++)
     {
         
         printf("%3d | %d \n", i, tab[i]);
@@ -483,7 +483,7 @@ Image *sub_image(Image *image1, Image *image2)
         {
             pixel = MAX((image1->image[row][col] - image2->image[row][col]), 0);
             image->image[row][col] = pixel;
-            pixMax = MAX(pixell, pixMax);
+            pixMax = MAX(pixel, pixMax);
         }
     }
 

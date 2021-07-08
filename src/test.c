@@ -22,7 +22,7 @@ int main()
     //print_hist(feep_hist);
     SpatialFilterList *spatial_filters = create_filters(15);
     // Image *feep_moyen = convulv(feep, moyenneur, ZERO_EDGES);
-    //Image *feep_moyen = convulv(lena, spatial_filters->mean_3, PARTIAL_FILTERED_EDGES);
+    //Image *feep_moyen = convulv(lena, spatial_filters->mean, PARTIAL_FILTERED_EDGES);
     //save(feep_moyen, "./data/lena_2.pgm");
 
     Image *sum = image_add(lea_1, lea_1);
