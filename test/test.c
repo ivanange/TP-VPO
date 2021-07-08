@@ -7,7 +7,8 @@
 int main()
 {
     int mat[3][2] = {{1, 2}, {3, 4}, {5, 6}};
-
+    
+    printf(MAX(mat[0][2],mat[1][2]));
     printf("%d\n", mat[1][1]);
 
     for (int i = 0; i < -1; i++)

@@ -9,7 +9,7 @@ int main()
     Image *feep = parse_image("./data/feep.ascii.pgm");
     Image *mona_lisa = parse_image("./data/mona_lisa.ascii.pgm");
     Image *apollo = parse_image("./data/apollonian_gasket.ascii.pgm");
-    SpatialFilterList *spatial_filters = create_filters();
+    SpatialFilterList *spatial_filters = create_filters(5);
 
     // play with fleep
     Image *feep_moyen = convulv(feep, spatial_filters->mean_3, PARTIAL_FILTERED_EDGES);

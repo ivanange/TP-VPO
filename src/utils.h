@@ -3,9 +3,12 @@
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define RESET "\x1B[0m"
 
 // Constants
-#define PLOT_SYMBOL (char)254u
+#define PLOT_SYMBOL (char)'*'
 #define PLOT_SCALE 150
 #define ZERO_EDGES 0
 #define PARTIAL_FILTERED_EDGES 1
@@ -25,6 +28,7 @@ struct Image
     int width;
     int spatial_resolution; // height * width
     int tonal_resolution;   // number of shades of gray
+    int ton_max;
     int **image;
 };
 
@@ -76,9 +80,9 @@ struct SpectralFilter
 * @param path image path
 * @return Image*
 */
-Image *parse_image(const char *path); // ok
+Image *take_image(const char *path); // ok
 
-void save(Image *img, char *path); // ok
+void save_image(Image *img, char *path); // ok
 
 /**
 * print part of image from point to { point.x + radius, point.y + radius }
