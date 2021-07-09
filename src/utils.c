@@ -14,17 +14,17 @@ Image *parse_image(const char *path)
     file = fopen(path, "r+");
     if (file == NULL)
     {
-        fprintf(stderr, "Error: Unable to open file %s\n\n", path);
+        fprintf(stderr, "Error: Impossibles d'ouvrir ce fichier %s\n\n", path);
         exit(8);
     }
 
-    printf("\nReading image file: %s\n", path);
+    printf("\nLecture du  fichier : %s\n", path);
 
     /*determine pgm image type (only type three can be used)*/
     ch = getc(file);
     if (ch != 'P')
     {
-        printf("ERROR(1): Not valid pgm/ppm file type\n");
+        printf("ERROR(1): Format non  valide\n");
         exit(1);
     }
     ch = getc(file);
@@ -246,13 +246,99 @@ void plot_hist(Hist *hist)
 
         for (int j = 0; j < print_hist[i]; j++)
         {
-            printf("%c", PLOT_SYMBOL);
+            printf("\u25A0");
         }
 
         printf("\n");
     }
     printf("\n");
 }
+
+int maxi(int *tab, int taille)
+{
+    int max=tab[0];  
+    
+    for (int i =1; i<taille; i++)
+     {
+        if (max < tab[i])
+        {
+         max = tab[i];
+        }
+         
+    }  
+    return max;
+};
+
+int occurence(int **tab, int var , int row,int col){
+    int occ = 0;
+    for (int i = 0; i < row ; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+           
+                occ = tab[2][1];
+            
+        }
+        
+    }
+    return occ;
+
+}
+
+void histogramme(Image* image){
+
+    printf("histogramme\n");
+    int tab[image->tonal_resolution]; 
+    int taille = image->tonal_resolution;
+    int  row = image->height;
+    int col = image->width;
+    for (int i = 0; i < taille; i++)
+    {
+        tab[i] =0;
+    }
+
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j< col; j++)
+        {
+            int val = image->image[i][j];
+           
+            tab[val]++;
+
+        }
+        
+    }
+        
+    int max =maxi(tab,  taille);
+    for (int i = max; i > 0; i--)
+    {
+        printf("%d ", i);
+        for (int j = 0; j < taille; j++)
+        {
+            
+            if (tab[j]>= i)
+            {
+                printf("\u25A0\t");
+            }
+            else
+            {
+                printf(" \t");
+            }
+                
+        }
+        printf("\n");
+            
+    }
+    printf("  ");
+    for (int i = 0; i < taille; i++)
+    {
+        printf("%d\t", i) ;
+    }
+    printf("\n");
+     
+        
+    }
+
 
 Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
 {
@@ -272,12 +358,7 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
 
     for (k = 0; k < filter->length; k++)
     {
-        /* apply each filter */
-
-        // check filter is odd
-        // printf("length: %d, k: %d, cols: %d, rows: %d\n", filter->length, k, filter->filters[k].cols, filter->filters[k].rows);
-
-        // set radius
+       
         row = filter->filters[k].rows;
         col = filter->filters[k].cols;
         radius_x = floor(row / 2);
@@ -285,10 +366,10 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
 
         for (i = 0; i < height; i++)
         {
-            // printf("%d\n", i);
+            
             for (j = 0; j < width; j++)
             {
-                // printf("%d,%d\n", i, j);
+                
                 sum = 0;
                 coff = 0;
                 scale = 1;
@@ -299,7 +380,7 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
 
                 if (i - radius_x < 0 || j - radius_y < 0 || i + radius_x >= height || j + radius_y >= width)
                 {
-                    /* handle edges_fill */
+                    
                     switch (edges_fill)
                     {
                     case ZERO_EDGES:
@@ -462,7 +543,7 @@ Image *image_add(Image *image1, Image *image2)
     {
         for (int col = 0; col < image->width; col++)
         {
-            acpix = MAX((image1->image[row][col] - image2->image[row][col]), 0);
+            acpix = MIN((image1->image[row][col] + image2->image[row][col]), 255);
             image->image[row][col] = acpix;
             pixMax = MAX(acpix, pixMax);
         }

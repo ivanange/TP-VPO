@@ -1,5 +1,5 @@
 CFLAGS= -g3 -c -Wall
-CC= gcc
+CC= gcc 
 SRC = src
 LIB = lib
 OBJ = obj
@@ -10,19 +10,19 @@ HEADERS= $(SRC)/utils.h $(SRC)/filters.h
 all : app test
 
 $(OBJ)/utils.o: $(SRC)/utils.c $(HEADERS)
-	$(CC) $(CFLAGS) $(SRC)/utils.c  -o $(OBJ)/utils.o
+	$(CC) $(CFLAGS) $(SRC)/utils.c  -o $(OBJ)/utils.o -lm
 
 $(OBJ)/app.o: $(SRC)/app.c $(HEADERS)
-	$(CC) $(CFLAGS) $(SRC)/app.c  -o $(OBJ)/app.o
+	$(CC) $(CFLAGS) $(SRC)/app.c  -o $(OBJ)/app.o -lm
 
 $(OBJ)/test.o: $(SRC)/test.c $(HEADERS)
-	$(CC) $(CFLAGS) $(SRC)/test.c -o $(OBJ)/test.o
+	$(CC) $(CFLAGS) $(SRC)/test.c  -o $(OBJ)/test.o -lm
 
 app: ${OBJECTS} $(OBJ)/app.o $(HEADERS)
-	$(CC) -o $(BIN)/app.exe ${OBJECTS} $(OBJ)/app.o
+	$(CC) -o $(BIN)/app.exe ${OBJECTS} $(OBJ)/app.o -lm
 
 test: ${OBJECTS} $(OBJ)/test.o $(HEADERS)
-	$(CC) -o $(BIN)/test.exe ${OBJECTS} $(OBJ)/test.o
+	$(CC) -o $(BIN)/test.exe ${OBJECTS} $(OBJ)/test.o -lm
 
 clean: 
 	rm -rf $(OBJ)/*.o

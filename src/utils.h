@@ -5,7 +5,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 // Constants
-#define PLOT_SYMBOL (char)254u
+#define PLOT_SYMBOL (char)"\u25A0"
 #define PLOT_SCALE 150
 #define ZERO_EDGES 0
 #define PARTIAL_FILTERED_EDGES 1
