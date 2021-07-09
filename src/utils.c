@@ -24,32 +24,38 @@ Image *take_image(const char *path)
     ch = getc(file);
     if (ch != 'P')
     {
-        printf(RED"ERROR(1):format Non valide  (pgm/ppm attendu)\n"RESET);
+        printf(RED"ERROR(1):format Non valide  (pgm/ppm/pbm attendu)\n"RESET);
         exit(1);
     }
     ch = getc(file);
     /*convert the one digit integer currently represented as a character to
     an integer(48 == '0')*/
+   
+     int type = ch - 48;
+     if (type!=2)
+    {
+        printf(RED"ERROR(1):format Non valide \n"RESET);
+        exit(1);
+    }
 
-    while (getc(file) != '\n')
-        ; /* skip to end of line*/
+    while (getc(file) != '\n'); /* skip to end of line*/
 
     fscanf(file, "%s", readChars);
     while (readChars[0] == '#')
     {
         //if a comment, get the rest of the line and a new word
+        //si c'est un commentaire recueper le reste de ligne
         fgets(readChars, 255, file);
         fscanf(file, "%s", readChars);
     }
 
-    //ok, comments are gone
-    //get width, height, color depth
+    
     sscanf(readChars, "%d", &(image->width));
     fscanf(file, "%d", &(image->height));
     fscanf(file, "%d", &(image->ton_max));
     image->tonal_resolution = image->ton_max + 1;
     image->spatial_resolution = image->height * image->width;
-
+    printf("\n Image P%d",type);
     printf("\n Largeur: %d", image->width);
     printf("\n hauteur: %d", image->height);
     printf("\n Nombre de nuances de gris: %d", image->tonal_resolution);
@@ -101,7 +107,7 @@ Image *take_imagebin(const char *path)
     ch = getc(file);
     /*convert the one digit integer currently represented as a character to
     an integer(48 == '0')*/
-
+     int type = ch - 48;
     while (getc(file) != '\n')
         ; /* skip to end of line*/
 
@@ -120,7 +126,7 @@ Image *take_imagebin(const char *path)
     //fscanf(file, "%d", &(image->ton_max));
     image->tonal_resolution = 0;
     image->spatial_resolution = image->height * image->width;
-
+    printf("\n Image P%d",type);
     printf("\n Largeur: %d", image->width);
     printf("\n hauteur: %d", image->height);
     //printf("\n Nombre de nuances de gris: %d", image->tonal_resolution);
@@ -213,7 +219,7 @@ void print_image(Image *image, Coordinates *start_point, int radius_x, int radiu
     printf("\n");
 }
 
-float luminousity(Image *image)
+float luminance(Image *image)
 {
 /* Cette fonction permet de calculer la luminausité de l'image*/
     float sum = 0;
@@ -229,10 +235,10 @@ float luminousity(Image *image)
     return sum / image->spatial_resolution;
 }
 
-float contrast(Image *image)
+float contraste(Image *image)
 {
 /*calcul du contrat*/
-    float mean = luminousity(image);
+    float mean = luminance(image);
     float sum = 0;
 
     for (int i = 0; i < image->height; i++)
@@ -347,6 +353,74 @@ void print_histogramme(Image *image)
     printf("\n");
 }
 
+Hist *make_hist(Image *image, int normalize)
+{
+    int shade;
+    Hist *histogram = malloc(sizeof(Hist));
+    histogram->image = image;
+
+    histogram->hist = calloc(image->tonal_resolution, sizeof(float));
+
+    // set all shades to 0
+    for (int i = 0; i < image->tonal_resolution; i++)
+    {
+        histogram->hist[i] = 0;
+    }
+
+    histogram->hist_coordinates = calloc(image->tonal_resolution, sizeof(CoordinatesList));
+
+    for (int i = 0; i < image->height; i++)
+    {
+        for (int j = 0; j < image->width; j++)
+        {
+            shade = image->image[i][j];
+            histogram->hist[shade]++;
+
+            Coordinates *coords = malloc(sizeof(Coordinates));
+            coords->x = i;
+            coords->y = j;
+
+            if (histogram->hist_coordinates[shade].coordinates == NULL)
+            {
+                // allocate memory for array
+                histogram->hist_coordinates[shade].coordinates = coords;
+                histogram->hist_coordinates[shade].length = 1;
+            }
+            else
+            {
+                // reallocate memory to append to array
+                Coordinates *new = realloc(histogram->hist_coordinates[shade].coordinates, (histogram->hist_coordinates[shade].length + 1) * sizeof(Coordinates));
+
+                if (new == NULL)
+                {
+                    /* something went wrong getting more memory, abort */
+                    perror("Couldn't get memrory, aborting and exitting");
+                    exit(EXIT_FAILURE);
+                }
+                else
+                {
+                    // got more memory, append to array
+                    histogram->hist_coordinates[shade].coordinates = new;
+                    histogram->hist_coordinates[shade].coordinates[histogram->hist_coordinates[shade].length] = *coords;
+                    histogram->hist_coordinates[shade].length++;
+                }
+            }
+        }
+    }
+
+    if (normalize == 1)
+    {
+        for (int i = 0; i < image->tonal_resolution; i++)
+        {
+            histogram->hist[i] = histogram->hist[i] / image->spatial_resolution;
+        }
+
+        histogram->normalized = 1;
+    }
+
+    return histogram;
+}
+
 
 
 Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
@@ -420,18 +494,22 @@ Image *convulv(Image *image, SpatialFilter *filter, int edges_fill)
     return new;
 }
 
-Image *add_image(Image *image1, Image *image2)
+
+
+Image *addition_img(Image *image1, Image *image2)
 {
     Image *image = malloc(sizeof(Image));
-    int pixMax = 0, pixel;
+    int  pixel;
     if (image1->width != image2->width || image1->height != image2->height)
     {
-        printf(RED"ERROR(1): image1 et image2 n'ont pas la même taille\n"RESET);
+        printf("ERROR(1): image1 and image2 should have the same dimension\n");
         exit(1);
     }
     image->width = image1->width;
     image->height = image1->height;
     image->spatial_resolution = image1->spatial_resolution;
+    image->tonal_resolution = MAX(image1->tonal_resolution,image2->tonal_resolution);
+    image->ton_max = MAX(image1->ton_max,image2->ton_max);
     image->image = allocate_dynamic_matrix(image->height, image->width);
     for (int row = 0; row < image->height; row++)
     {
@@ -444,18 +522,19 @@ Image *add_image(Image *image1, Image *image2)
     {
         for (int col = 0; col < image->width; col++)
         {
-            pixel = MIN((image1->image[row][col] + image2->image[row][col]), 255);
+            pixel = MIN((image1->image[row][col] + image2->image[row][col]), image->ton_max);
             image->image[row][col] = pixel;
-            pixMax = MAX(pixel, pixMax);
+            //pixMax = MAX(acpix, pixMax);
         }
     }
-    image->tonal_resolution = pixMax+1;
-    image->ton_max = pixMax;
+    //image->tonal_resolution = pixMax+1;
+    //image->ton_max = pixMax;
 
     return image;
 }
 
-Image *sub_image(Image *image1, Image *image2)
+
+Image *soustraction_img(Image *image1, Image *image2)
 {
     // image1 - image2
     Image *image = malloc(sizeof(Image));
@@ -468,6 +547,8 @@ Image *sub_image(Image *image1, Image *image2)
     image->width = image1->width;
     image->height = image1->height;
     image->spatial_resolution = image1->spatial_resolution;
+    image->tonal_resolution = MAX(image1->tonal_resolution,image2->tonal_resolution);
+    image->ton_max = MAX(image1->ton_max,image2->ton_max);
     image->image = allocate_dynamic_matrix(image->height, image->width);
     for (int row = 0; row < image->height; row++)
     {
@@ -487,21 +568,22 @@ Image *sub_image(Image *image1, Image *image2)
         }
     }
 
-    image->tonal_resolution = pixMax+1;
-    image->ton_max =pixMax;
+    
 
     return image;
 }
 
 
 
-Image *image_mul(Image *image1, int ratio)
+Image *multiplication_img(Image *image1, int ratio)
 {
     // image1 * ratio
     Image *image = malloc(sizeof(Image));
     int pixMax = 0, pixel;
     image->width = image1->width;
     image->height = image1->height;
+    image->tonal_resolution = image1->tonal_resolution;
+    image->ton_max = image1->ton_max;
     image->spatial_resolution = image1->spatial_resolution;
     image->image = allocate_dynamic_matrix(image->height, image->width);
 
@@ -517,13 +599,197 @@ Image *image_mul(Image *image1, int ratio)
     {
         for (int col = 0; col < image->width; col++)
         {
-            pixel = MIN((image1->image[row][col] * ratio), 255);
+            pixel = MIN((image1->image[row][col] * ratio), image1->ton_max);
             image->image[row][col] = pixel;
-            pixMax = MAX(pixel, pixMax);
+            //pixMax = MAX(pixel, pixMax);
         }
     }
-    image->tonal_resolution = pixMax+1;
-    image->ton_max = pixMax;
+    
+
+    return image;
+}
+Image *tansformation_lineaire(Image *image)
+{
+    int pixmax = image->ton_max;
+    int LUT[image->tonal_resolution];
+    int minI, maxI;
+    Image *new = malloc(sizeof(Image));
+    new->width = image->width;
+    new->height = image->height;
+    new->spatial_resolution = image->spatial_resolution;
+    new->ton_max = image->ton_max;
+    new->image = allocate_dynamic_matrix(image->height, image->width);
+    maxI = image->image[0][0];
+    minI = image->image[0][0];
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            if (minI >= image->image[row][col])
+            {
+                minI = image->image[row][col];
+            }
+            if (maxI <= image->image[row][col])
+            {
+                maxI = image->image[row][col];
+            }
+        }
+    }
+
+    for (int i = 0; i <= pixmax; i++)
+    {
+        LUT[i] = pixmax *(i - minI) / (maxI - minI);
+    }
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            new->image[row][col] = LUT[image->image[row][col]];
+        }
+    }
+
+    return new;
+}
+
+Image *tansformation_saturer(Image *image,int Smin ,int Smax)
+{
+    int pixmax = image->ton_max;
+    int LUT[image->tonal_resolution];
+    int minI, maxI;
+    Image *new = malloc(sizeof(Image));
+    new->width = image->width;
+    new->height = image->height;
+    new->spatial_resolution = image->spatial_resolution;
+    new->ton_max = image->ton_max;
+    new->image = allocate_dynamic_matrix(image->height, image->width);
+    maxI = image->image[0][0];
+    minI = image->image[0][0];
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            if (minI >= image->image[row][col])
+            {
+                minI = image->image[row][col];
+            }
+            if (maxI <= image->image[row][col])
+            {
+                maxI = image->image[row][col];
+            }
+        }
+    }
+    if (Smin>=minI && Smax<=maxI)
+    {
+            for (int i = 0; i <= pixmax; i++)
+        {   
+            int m = MAX(i- Smin,0);
+            LUT[i] = pixmax * m / (Smax - Smin);
+        }
+
+        for (int row = 0; row < image->height; row++)
+        {
+            for (int col = 0; col < image->width; col++)
+            {
+                new->image[row][col] = LUT[image->image[row][col]];
+            }
+        }
+        
+    }
+    else{
+        printf(RED"Mauvais Smin ou Smax"RESET);
+        
+    }
+
+    return new;
+}
+
+
+Image *inverse_img(Image *image)
+{
+    int pixMax = image->ton_max;
+    Image *new = malloc(sizeof(Image));
+    new->width = image->width;
+    new->height = image->height;
+    new->spatial_resolution = image->spatial_resolution;
+    new->tonal_resolution =image->tonal_resolution;
+    new->ton_max = image->ton_max;
+    new->image = allocate_dynamic_matrix(image->height, image->width);
+   for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            new->image[row][col] = MAX(pixMax -image->image[row][col],0);
+        }
+    }
+    return new;
+}
+
+Image *binarise_img(Image *image, int seuil)
+{
+    Image *new = malloc(sizeof(Image));
+    new->width = image->width;
+    new->height = image->height;
+    new->spatial_resolution = image->spatial_resolution;
+    new->tonal_resolution =image->tonal_resolution;
+    new->ton_max = image->ton_max;
+    new->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {   
+            if (image->image[row][col]> seuil)
+            {
+                 new->image[row][col] = 255;
+            }
+            else
+            {
+                new->image[row][col] = 0;
+            }
+            
+        }
+    }
+
+    return new;
+}
+
+
+
+Image *egalisation_histogramme(Image *image1)
+{
+
+    Hist *hist = make_hist(image1, 1);
+    int pixmax = image1->ton_max;
+    // print_hist(hist);
+    float *C = malloc((pixmax+1) * sizeof(int));
+    for (int i = 0; i <= pixmax; i++)
+    {
+        float somme = 0.00;
+        for (int j = 0; j <= i; j++)
+        {
+
+            somme = somme + hist->hist[j];
+        }
+        C[i] = somme;
+        
+    }
+
+    Image *image = malloc(sizeof(Image));
+    image->width = image1->width;
+    image->height = image1->height;
+    image->spatial_resolution = image1->spatial_resolution;
+    image->tonal_resolution =image1->tonal_resolution;
+    image->ton_max = image1->ton_max;
+    image->image = allocate_dynamic_matrix(image->height, image->width);
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            image->image[row][col] = C[image1->image[row][col]] * pixmax;
+        }
+    }
 
     return image;
 }

@@ -119,13 +119,12 @@ void print_hist(Hist *hist);
 
 void plot_hist(Hist *hist);
 
-Image *enhance_by_linear_trans(Hist *hist); // en cour
 
-Image *enhance_by_linear_trans_sat(Hist *hist); // à revoir
+
+
 
 Image *enhance_by_linear_trans_frag(Hist *hist); // à revoir
 
-Hist *enhance_by_histogram_equalization(Hist *hist); // en cour
 
 /**
 * Applies filter to image
@@ -144,19 +143,27 @@ Image *FFT_inverse(SpectralImage *image);
 
 //for ad hoc operations
 
-Image *image_mul(Image *image1, int ratio); // ok
+Image *multiplication_img(Image *image1, int ratio); // ok
 
-// Image *image_div(Image *image1, Image *image2);
+Image *soustraction_img(Image *image1, Image *image2); // ok
 
-Image *image_sub(Image *image1, Image *image2); // ok
+Image *addition_img(Image *image1, Image *image2); // ok
 
-Image *image_add(Image *image1, Image *image2); // ok
+Image *tansformation_lineaire(Image *image); //ok
+
+Image *tansformation_saturer(Image *image,int Smin ,int Smax);//ok
+
+Image *binarise_img(Image *image, int seuil); //ok
+
+Image *egalisation_histogramme(Image *image1);//ok
+
+Image *inverse_img(Image *image);
 
 Image *image_or(Image *image1, Image *image2);
 
 Image *image_not(Image *image);
 
-Image *interpolate(Image *image, float factor); // à revoir
+Image *interpolation(Image *image, float factor); // à revoir
 
 // helpers
 
