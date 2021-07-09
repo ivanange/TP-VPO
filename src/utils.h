@@ -99,14 +99,14 @@ void print_image(Image *image, Coordinates *start_point, int radius_x, int radiu
 * @param image
 * @return float
 */
-float luminousity(Image *image); // ok
+float luminance(Image *image); // ok
 
 /**
 * Calculate contrast
 * @param image
 * @return float
 */
-float contrast(Image *image); // ok
+float contraste(Image *image); // ok
 
 /**
 * Build histogram of
@@ -143,13 +143,15 @@ Image *FFT_inverse(SpectralImage *image);
 
 //for ad hoc operations
 
-Image *multiplication_img(Image *image1, int ratio); // ok
+Image *multiplication_img(Image *image1, float ratio); // ok
 
 Image *soustraction_img(Image *image1, Image *image2); // ok
 
 Image *addition_img(Image *image1, Image *image2); // ok
 
-Image *tansformation_lineaire(Image *image); //ok
+Image *tansformation_lineaire(Image *image);
+
+Image *transformation_gamma(Image *image ,float gamma); //ok
 
 Image *tansformation_saturer(Image *image,int Smin ,int Smax);//ok
 

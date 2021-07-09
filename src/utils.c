@@ -575,7 +575,7 @@ Image *soustraction_img(Image *image1, Image *image2)
 
 
 
-Image *multiplication_img(Image *image1, int ratio)
+Image *multiplication_img(Image *image1, float ratio)
 {
     // image1 * ratio
     Image *image = malloc(sizeof(Image));
@@ -599,7 +599,7 @@ Image *multiplication_img(Image *image1, int ratio)
     {
         for (int col = 0; col < image->width; col++)
         {
-            pixel = MIN((image1->image[row][col] * ratio), image1->ton_max);
+            pixel = MIN(floor(image1->image[row][col] * ratio), image1->ton_max);
             image->image[row][col] = pixel;
             //pixMax = MAX(pixel, pixMax);
         }
@@ -608,6 +608,7 @@ Image *multiplication_img(Image *image1, int ratio)
 
     return image;
 }
+
 Image *tansformation_lineaire(Image *image)
 {
     int pixmax = image->ton_max;
@@ -625,6 +626,53 @@ Image *tansformation_lineaire(Image *image)
     for (int row = 0; row < image->height; row++)
     {
         for (int col = 0; col < image->width; col++)
+        {
+            if (minI >= image->image[row][col])
+            {
+                minI = image->image[row][col];
+            }
+            if (maxI <= image->image[row][col])
+            {
+                maxI = image->image[row][col];
+            }
+        }
+    }
+
+    for (int i = 0; i <= pixmax; i++)
+    {
+        LUT[i] = pixmax *(i - minI) / (maxI - minI);
+    }
+
+    for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            new->image[row][col] = LUT[image->image[row][col]];
+        }
+    }
+
+    return new;
+}
+
+
+Image *tansformation_morcaux(Image *image,int x ,int y,int Smin,int sme)
+{   
+
+    int pixmax = image->ton_max;
+    int LUT[image->tonal_resolution];
+    int minI, maxI;
+    Image *new = malloc(sizeof(Image));
+    new->width = image->width;
+    new->height = image->height;
+    new->spatial_resolution = image->spatial_resolution;
+    new->ton_max = image->ton_max;
+    new->image = allocate_dynamic_matrix(image->height, image->width);
+    maxI = image->image[x][y];
+    minI = image->image[x][y];
+
+    for (int row = x; row < image->height; row++)
+    {
+        for (int col = x; col < image->width; col++)
         {
             if (minI >= image->image[row][col])
             {
@@ -721,7 +769,28 @@ Image *inverse_img(Image *image)
     {
         for (int col = 0; col < image->width; col++)
         {
-            new->image[row][col] = MAX(pixMax -image->image[row][col],0);
+            new->image[row][col] = abs(pixMax -image->image[row][col]);
+        }
+    }
+    return new;
+}
+
+
+Image *transformation_gamma(Image *image ,float gamma)
+{
+    int pixMax = image->ton_max;
+    Image *new = malloc(sizeof(Image));
+    new->width = image->width;
+    new->height = image->height;
+    new->spatial_resolution = image->spatial_resolution;
+    new->tonal_resolution =image->tonal_resolution;
+    new->ton_max = image->ton_max;
+    new->image = allocate_dynamic_matrix(image->height, image->width);
+   for (int row = 0; row < image->height; row++)
+    {
+        for (int col = 0; col < image->width; col++)
+        {
+            new->image[row][col] = MIN(floor(pow(image->image[row][col],gamma)),pixMax);
         }
     }
     return new;
